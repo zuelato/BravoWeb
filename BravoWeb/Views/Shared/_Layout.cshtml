@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BravoWeb</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BravoWeb.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Bravo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center align-items-center">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">GIỚI THIỆU</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">SẢN PHẨM</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">DỊCH VỤ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">TIN TỨC</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">KHÁCH HÀNG</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">TUYỂN DỤNG</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">LIÊN KẾT</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">LIÊN HỆ</a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="site-body">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-upper-container">
+            <div class="footer-upper-container-content">
+                <div class="company">
+                    <a href="/" class="brand">BRAVO</a>
+                    <p class="title">CÔNG TY CỔ PHẦN PHẦN MỀM BRAVO</p>
+                    <p class="info">Doanh nghiệp chuyên sâu phát triển và triển khai ứng dụng các hệ thống phần mềm về công nghệ thông tin</p>
+                    <div class="icons">
+                        <div class="circle-border">yt</div>
+                        <div class="circle-border">fb</div>
+                        <div class="circle-border">in</div>
+                    </div>
+                </div>
+
+                <div class="footer-right-grid">
+                    <div class="tel-title">LIÊN HỆ VỚI CHÚNG TÔI</div>
+                    <div class="about-title">VỀ BRAVO</div>
+
+                    <div class="city">Hà Nội</div>
+                    <div class="city-tel">&hntel</div>
+                    <div class="about-link"><a href="/">Thông tin chủ sở hữu</a></div>
+
+                    <div class="city">Đà Nẵng</div>
+                    <div class="city-tel">&dntel</div>
+                    <div class="about-link"><a href="/">Chính sách và điều khoản</a></div>
+
+                    <div class="city">Tp. HCM</div>
+                    <div class="city-tel">&sgtel</div>
+                    <div class="about-link"><a href="/">Chứng nhận bản quyền phần mềm BRAVO</a></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="footer-bottom-container">
+            Copyright &copy; 1999-2023 BRAVO. All Rights Reserved.
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,128 @@
+@model List<string>
+<link rel="stylesheet" href="~/css/partner.css" asp-append-version="true" />
+
+<div class="partners-section section-container">
+    <div class="content">
+        <div class="upper-section-content">
+            <div class="section-name">
+                <div class="name">
+                    <p>PARTNERS</p>
+                </div>
+                <div class="divider">
+                    <div class="divider-left"></div>
+                    <div class="divider-right"></div>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <div class="title">
+                    <p>Khách hàng c?a chúng tôi</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="partners-carousel-container" id="partners-carousel">
+            <div class="partners-prev partners-nav" id="partners-prev">
+                <p>&lt;</p>
+            </div>
+
+            <div class="partners-viewport">
+                <div class="partners-track">
+                    @{
+                        var items = Model;
+                        var slides = items.Select((x,i) => new { x, i })
+                                          .GroupBy(p => p.i / 12)
+                                          .Select(g => g.Select(p => p.x).ToList())
+                                          .ToList();
+                    }
+                    @foreach (var slide in slides)
+                    {
+                        <div class="partner-slide">
+                            <div class="partner-grid">
+                                @foreach (var logo in slide)
+                                {
+                                    <div class="partner-cell">@logo</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="partners-next partners-nav" id="partners-next">
+                <p>&gt;</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function(){
+    const container = document.getElementById('partners-carousel');
+    const viewport = container.querySelector('.partners-viewport');
+    const track = container.querySelector('.partners-track');
+    const prevBtn = document.getElementById('partners-prev');
+    const nextBtn = document.getElementById('partners-next');
+    let slides = Array.from(track.children);
+    let slideWidth = 0;
+    let isAnimating = false;
+
+    function recalc(){
+        // size based on viewport width so masking hides adjacent slides
+        slideWidth = viewport.clientWidth;
+        slides.forEach(s => s.style.flex = `0 0 ${slideWidth}px`);
+        // ensure track shows the first slide (no offset)
+        track.style.transition = 'none';
+        track.style.transform = `translate3d(0,0,0)`;
+    }
+
+    function moveNext(){
+        if(isAnimating) return;
+        isAnimating = true;
+        const target = -slideWidth;
+        track.style.transition = 'transform 0.45s ease';
+        track.style.transform = `translate3d(${target}px,0,0)`;
+        const onEnd = ()=>{
+            track.removeEventListener('transitionend', onEnd);
+            // move first slide to end
+            const first = track.firstElementChild;
+            track.appendChild(first);
+            // reset transform without animation
+            track.style.transition = 'none';
+            track.style.transform = `translate3d(0,0,0)`;
+            // refresh slides
+            slides = Array.from(track.children);
+            isAnimating = false;
+        };
+        track.addEventListener('transitionend', onEnd);
+    }
+
+    function movePrev(){
+        if(isAnimating) return;
+        isAnimating = true;
+        // move last to front
+        const last = track.lastElementChild;
+        track.insertBefore(last, track.firstChild);
+        // immediately shift left by -slideWidth so visual stays the same
+        track.style.transition = 'none';
+        track.style.transform = `translate3d(${-slideWidth}px,0,0)`;
+        // force reflow
+        void track.offsetWidth;
+        // animate to zero
+        track.style.transition = 'transform 0.45s ease';
+        track.style.transform = `translate3d(0,0,0)`;
+        const onEnd = ()=>{
+            track.removeEventListener('transitionend', onEnd);
+            slides = Array.from(track.children);
+            isAnimating = false;
+        };
+        track.addEventListener('transitionend', onEnd);
+    }
+
+    nextBtn.addEventListener('click', moveNext);
+    prevBtn.addEventListener('click', movePrev);
+    window.addEventListener('resize', recalc);
+    recalc();
+})();
+</script>
