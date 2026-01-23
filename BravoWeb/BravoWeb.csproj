@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Shared\Components\Contact\" />
     <Folder Include="Views\Shared\Components\ProductNews\" />
     <Folder Include="Views\Shared\Components\RecentlyNews\" />
   </ItemGroup>

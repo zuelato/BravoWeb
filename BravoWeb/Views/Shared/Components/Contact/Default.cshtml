@@ -1,0 +1,38 @@
+﻿@page
+@model BravoWeb.Views.Shared.Components.Contact.DefaultModel
+@{
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact</title>
+    <link rel="stylesheet" href="~/css/contact.css" asp-append-version="true" />
+
+</head>
+<body>
+    <div class="section-container">
+        <div class="content">
+            <div class="contact-form">
+                <div class="contact-form-title">
+                    Bạn có như cầu liên hệ tư vấn?
+                </div>
+                <form>
+                    <div class="contact-fields">
+                        <input required type="text" name="corp-name" placeholder="Tên công ty / tổ chức (*)" />
+                        <input required type="text" name="client-name" placeholder="Họ và tên (*)" />
+
+                        <input required type="email" name="client-email" placeholder="Email (*)" />
+                        <input required type="tel" name="client-phone-number" placeholder="Số điện thoại (*)" />
+
+                        <input type="text" name="client-address" placeholder="Địa chỉ" class="address" />
+
+                        <textarea name="client-task-detail" placeholder="Nội dung yêu cầu..." class="task-detail"></textarea>
+                    </div>
+                </form>
+                <button class="contact-form-submit">GỬI THÔNG TIN</button>
+            </div>
+            <div class="contact-banner"></div>
+        </div>
+    </div>
+</body>
+</html>
