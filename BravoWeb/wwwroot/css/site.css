@@ -1,3 +1,5 @@
+/* Removed global application of side padding so individual components can opt-in using the variable */
+
 html {
   font-size: 14px;
 }
@@ -28,4 +30,48 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+.upper-section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-name {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.name p {
+    letter-spacing: 4px;
+    color: #00a88e;
+    margin: 0;
+}
+
+.divider {
+    width: 20vw;
+    height: 3px;
+    display: flex;
+    margin-top: 8px;
+}
+
+.divider-left {
+    width: 36%;
+    background-color: #00a88e;
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+}
+
+.title p {
+    font-size: 22px;
+    color: black;
+    font-weight: 600;
+    text-align: left;
+    margin: 8px 0 0 0;
 }

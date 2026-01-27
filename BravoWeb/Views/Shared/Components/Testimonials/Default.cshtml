@@ -1,27 +1,222 @@
-@* Testimonials component view *@
+﻿@* Testimonials component view *@
 <link rel="stylesheet" href="~/css/testimonials.css" asp-append-version="true" />
 
-<div class="testimonials-section section-container">
+<div class="section-container">
     <div class="content">
         <div class="upper-section-content">
             <div class="section-name">
-                <div class="name"><p>TESTIMONIALS</p></div>
-                <div class="divider"><div class="divider-left"></div></div>
-            </div>
-            <div class="section-title"><div class="title"><p>Ph?n h?i t? kh�ch h�ng</p></div></div>
-        </div>
-        <div class="lower-section-content">
-            <!-- Carousel content reused from previous partial -->
-            <div class="carousel-container" id="testimonials-carousel">
-                <div class="carousel-track">
-                    <div class="carousel-card"><div class="carousel-card-upper-section"><div class="carousel-card-upper-section-portrait"></div><div class="carousel-card-upper-section-title"><div class="testimonial-carousel-name">&testimonial-name</div><div class="testimonial-carousel-title">&testimonial-title</div></div></div><div class="carousel-card-lower-section">&testimonial-comment</div></div>
-                    <div class="carousel-card"><div class="carousel-card-upper-section"><div class="carousel-card-upper-section-portrait"></div><div class="carousel-card-upper-section-title"><div class="testimonial-carousel-name">&testimonial-name</div><div class="testimonial-carousel-title">&testimonial-title</div></div></div><div class="carousel-card-lower-section">&testimonial-comment</div></div>
-                    <div class="carousel-card"><div class="carousel-card-upper-section"><div class="carousel-card-upper-section-portrait"></div><div class="carousel-card-upper-section-title"><div class="testimonial-carousel-name">&testimonial-name</div><div class="testimonial-carousel-title">&testimonial-title</div></div></div><div class="carousel-card-lower-section">&testimonial-comment</div></div>
+                <div class="name">
+                    <p>TESTIMONIALS</p>
+                </div>
+                <div class="divider">
+                    <div class="divider-left"></div>
+                    <div class="divider-right"></div>
                 </div>
             </div>
-            <div class="carousel-controller"><div class="carousel-controller-prev-nav" id="carousel-prev"><p>&lt;</p></div><div class="carousel-controller-next-nav" id="carousel-next"><p>&gt;</p></div></div>
+
+            <div class="section-title">
+                <div class="title">
+                    <p>Phản hồi từ khách hàng</p>
+                </div>
+            </div>
+        </div>
+        <div class="lower-section-content">
+            <div class="carousel-container" id="testimonials-carousel">
+                <div class="carousel-track">
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">&testimonial-name</div>
+                                <div class="testimonial-carousel-title">&testimonial-title</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            &testimonial-comment
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="carousel-controller">
+                <div class="carousel-controller-prev-nav" id="carousel-prev">
+                    <p>&lt;</p>
+                </div>
+
+                <div class="carousel-controller-next-nav" id="carousel-next">
+                    <p>&gt;</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="~/js/testimonials.js" asp-append-version="true"></script>
+<script>
+    (function(){
+        const container = document.getElementById('testimonials-carousel');
+        const track = container.querySelector('.carousel-track');
+        const prevBtn = document.getElementById('carousel-prev');
+        const nextBtn = document.getElementById('carousel-next');
+        let cards = Array.from(track.children);
+        let cardWidth = 0;
+        let gapBetween = 0;
+        let currentTranslate = 0;
+        let isAnimating = false;
+
+        function recalcSizesOnly(){
+            // Use viewport width so carousel truly bleeds edge-to-edge
+            const viewport = window.innerWidth || document.documentElement.clientWidth || container.clientWidth;
+            const trackStyle = getComputedStyle(track);
+            const trackPadLeft = parseFloat(trackStyle.paddingLeft) || 0;
+            const trackPadRight = parseFloat(trackStyle.paddingRight) || 0;
+            const effectiveViewport = viewport - trackPadLeft - trackPadRight;
+
+            const computed = getComputedStyle(cards[0]);
+            const ml = parseFloat(computed.marginLeft) || 0;
+            const mr = parseFloat(computed.marginRight) || 0;
+            gapBetween = ml + mr;
+            const totalGap = (3 - 1) * gapBetween;
+            cardWidth = (effectiveViewport - totalGap) / 3;
+            cards.forEach(c => { c.style.flex = `0 0 ${cardWidth}px`; });
+        }
+
+        function updateSizes(){
+            recalcSizesOnly();
+            // initial translate: negative half card so half shows left (preserves visual layout)
+            currentTranslate = -cardWidth/2;
+            setTranslate(currentTranslate, false);
+        }
+
+        function setTranslate(x, animate=true){
+            track.style.transition = animate ? 'transform 0.45s ease' : 'none';
+            track.style.transform = `translate3d(${x}px,0,0)`;
+        }
+
+        function moveNext(){
+            if(isAnimating) return;
+            isAnimating = true;
+            nextBtn.style.pointerEvents = 'none';
+            prevBtn.style.pointerEvents = 'none';
+            const step = cardWidth + gapBetween;
+            const target = currentTranslate - step;
+            setTranslate(target, true);
+            const onEnd = () => {
+                track.removeEventListener('transitionend', onEnd);
+                const first = track.firstElementChild;
+                track.appendChild(first);
+                // refresh cards and recalc sizes
+                cards = Array.from(track.children);
+                recalcSizesOnly();
+                // force reflow
+                void track.offsetWidth;
+                // restore translate to original half card position
+                currentTranslate = -cardWidth/2;
+                setTranslate(currentTranslate, false);
+                isAnimating = false;
+                nextBtn.style.pointerEvents = '';
+                prevBtn.style.pointerEvents = '';
+            };
+            track.addEventListener('transitionend', onEnd);
+        }
+
+        function movePrev(){
+            if(isAnimating) return;
+            isAnimating = true;
+            nextBtn.style.pointerEvents = 'none';
+            prevBtn.style.pointerEvents = 'none';
+            const step = cardWidth + gapBetween;
+            const last = track.lastElementChild;
+            track.insertBefore(last, track.firstChild);
+            // refresh cards and recalc sizes
+            cards = Array.from(track.children);
+            recalcSizesOnly();
+            // set translate to show half card shifted left by one step
+            currentTranslate = -(cardWidth/2) - step;
+            setTranslate(currentTranslate, false);
+            // force reflow
+            void track.offsetWidth;
+            // animate back to half card position
+            const target = -cardWidth/2;
+            setTranslate(target, true);
+            const onEnd = () => {
+                track.removeEventListener('transitionend', onEnd);
+                currentTranslate = target;
+                cards = Array.from(track.children);
+                isAnimating = false;
+                nextBtn.style.pointerEvents = '';
+                prevBtn.style.pointerEvents = '';
+            };
+            track.addEventListener('transitionend', onEnd);
+        }
+
+        nextBtn.addEventListener('click', moveNext);
+        prevBtn.addEventListener('click', movePrev);
+        window.addEventListener('resize', updateSizes);
+        updateSizes();
+    })();
+</script>

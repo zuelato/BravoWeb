@@ -1,0 +1,33 @@
+/* Apply site gutter to partners content using margins to align with banner */
+.partners-section .content {
+    margin-left: var(--site-side-margin, 20%);
+    margin-right: var(--site-side-margin, 20%);
+}
+
+.partners-section .partners-viewport {
+    overflow: hidden;
+}
+
+.partners-track {
+    display: flex;
+}
+
+.partner-slide {
+    display: flex;
+}
+
+.partner-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.partner-cell {
+    background: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

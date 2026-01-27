@@ -1,17 +1,14 @@
-﻿@{
+﻿@model List<Microsoft.AspNetCore.Html.IHtmlContent>
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <main>
     <div class="site-body">
-        @await Component.InvokeAsync("Banner")
-        @* @await Component.InvokeAsync("Services") *@
-        @await Component.InvokeAsync("Solution")
-        @await Component.InvokeAsync("Partners")
-        @await Component.InvokeAsync("Testimonials")
-        @* @await Component.InvokeAsync("Contact") *@
-        @* @await Component.InvokeAsync("RecentlyNews") *@
-        @* @await Component.InvokeAsync("ProductNews") *@
+        @foreach (var fragment in Model)
+        {
+            @fragment
+        }
     </div>
 
 </main>

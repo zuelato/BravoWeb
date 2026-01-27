@@ -8,6 +8,18 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/BravoWeb.styles.css" asp-append-version="true" />
+
+    @* Render component-specific styles registered by controller *@
+    @{
+        var compStyles = ViewData["componentStyles"] as List<string>;
+        if (compStyles != null)
+        {
+            foreach (var href in compStyles)
+            {
+                <link rel="stylesheet" href="@href" />
+            }
+        }
+    }
 </head>
 <body>
     <header>

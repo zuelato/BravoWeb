@@ -1,0 +1,17 @@
+/* Apply site gutter to solutions content using margins to align with banner */
+.solutions-section .content {
+    margin-left: var(--site-side-margin, 20%);
+    margin-right: var(--site-side-margin, 20%);
+    padding: 0 0 24px 0;
+}
+
+.solutions-section .section-name {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.solutions-section .title p {
+    font-size: 20px;
+    margin: 12px 0 0 0;
+}

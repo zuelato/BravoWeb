@@ -1,13 +1,4 @@
-﻿* {
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    width: 100%;
-}
-
-.banner-container {
+﻿.banner-container {
     position: relative;
     left: 50%;
     right: 50%;
@@ -27,7 +18,7 @@ a {
     text-decoration: none;
 }
 
-.content {
+.banner-container-content {
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -36,27 +27,27 @@ a {
     width: clamp(300px, 60ch, 50%);
     align-items: flex-start;
     text-align: left;
-    margin-left: var(--site-side-margin, 4%);
+    margin-left: var(--site-side-margin, 20%);
     padding: 6vh 0;
 }
 
-    .content p {
+    .banner-container-content p {
         color: white;
     }
 
-.title {
+.banner-container-content-title {
     font-size: 28px;
     font-weight: bold;
     color: white;
     margin-bottom: 20px;
 }
 
-.subtitle {
+.banner-container-content-subtitle {
     font-size: 18px;
     color: white;
 }
 
-.about-us {
+.banner-container-content-about-us {
     width: 40%;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -69,18 +60,18 @@ a {
     margin-top: 15px;
 }
 
-.button-container {
+.banner-container-content-button-container {
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
 }
 
-.about-us p {
+.banner-container-content-about-us p {
     font-size: 18px;
 }
 
-.about-us:hover {
+.banner-container-content-about-us:hover {
     background-color: #00a88e;
 }
 
