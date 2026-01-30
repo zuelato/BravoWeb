@@ -22,7 +22,6 @@ a {
         flex-direction: column;
         gap: 20px;
         padding: 40px 0;
-        margin-left: var(--site-side-margin, 20%);
         padding-left: var(--site-side-margin, 20%);
         padding-right: var(--site-side-margin, 20%);
     }
