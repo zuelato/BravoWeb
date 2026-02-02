@@ -1,0 +1,113 @@
+@page
+@model BravoWeb.Pages.Admin.Fragments.IndexModel
+@{
+    ViewData["Title"] = "Manage Content Fragments";
+}
+
+<h2>Content Fragments</h2>
+
+<p>
+    <a asp-page="./Edit">Create New Fragment</a>
+    <button id="openAddBtn" type="button">Add New</button>
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>DisplayOrder</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var f in Model.Fragments)
+        {
+            <tr>
+                <td>@f.Id</td>
+                <td>@f.Name</td>
+                <td>@f.DisplayOrder</td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@f.Id">Edit</a>
+                    <form method="post" asp-page-handler="Delete" style="display:inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@f.Id" />
+                        <button type="submit" onclick="return confirm('Delete this fragment?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div id="addModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; width:90%; max-width:1000px; padding:16px; border-radius:6px; max-height:90vh; overflow:auto;">
+        <h3>Create New Fragment</h3>
+        <form id="addForm" asp-page="./Edit" method="post" onsubmit="return syncEditorAndSubmit()">
+            @Html.AntiForgeryToken()
+            <div>
+                <label>Name</label>
+                <input name="Fragment.Name" required />
+            </div>
+            <div>
+                <label>Display Order</label>
+                <input name="Fragment.DisplayOrder" type="number" value="0" />
+            </div>
+
+            <div style="margin-top:12px;">
+                <label>HTML Content</label>
+                <textarea id="addHtmlContent" name="Fragment.HtmlContent" style="display:none;"></textarea>
+                <div id="addEditor" style="height:360px; border:1px solid #ddd;"></div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <button id="addSaveBtn" type="submit">Save</button>
+                <button type="button" id="cancelAddBtn">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
+        let addEditor;
+        let addEditorInitialized = false;
+
+        document.getElementById('openAddBtn').addEventListener('click', function () {
+            document.getElementById('addModal').style.display = 'flex';
+            // disable save until editor initialized to avoid empty submissions
+            document.getElementById('addSaveBtn').disabled = true;
+            if (!addEditorInitialized) {
+                require(['vs/editor/editor.main'], function () {
+                    addEditor = monaco.editor.create(document.getElementById('addEditor'), {
+                        value: document.getElementById('addHtmlContent').value || '',
+                        language: 'html',
+                        automaticLayout: true,
+                        minimap: { enabled: false }
+                    });
+                    addEditorInitialized = true;
+                    document.getElementById('addSaveBtn').disabled = false;
+                });
+            } else {
+                document.getElementById('addSaveBtn').disabled = false;
+            }
+        });
+
+        document.getElementById('cancelAddBtn').addEventListener('click', function () {
+            document.getElementById('addModal').style.display = 'none';
+        });
+
+        function syncEditorAndSubmit() {
+            // copy editor content back to hidden textarea before submit
+            if (addEditorInitialized && addEditor) {
+                document.getElementById('addHtmlContent').value = addEditor.getValue();
+            } else {
+                // if editor not ready, ensure hidden textarea has at least an empty string
+                document.getElementById('addHtmlContent').value = document.getElementById('addHtmlContent').value || '';
+            }
+            return true; // allow form to submit
+        }
+    </script>
+}

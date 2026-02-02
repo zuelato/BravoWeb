@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Linq;
+using System.Collections.Generic;
 using BravoWeb.Models;
 using BravoWeb.Data;
 using Microsoft.AspNetCore.Html;
@@ -19,13 +21,15 @@ namespace BravoWeb.Controllers
         }
 
         public IActionResult Index()
+
         {
             // Register only the styles required by the fragments on this page
             var styles = new List<string>
             {
                 Url.Content("~/css/banner.css"),
                 Url.Content("~/css/product_news.css"),
-                Url.Content("~/css/testimonials.css")
+                Url.Content("~/css/testimonials.css"),
+                Url.Content("~/css/partner.css")
             };
             ViewData["componentStyles"] = styles;
 
@@ -35,25 +39,22 @@ namespace BravoWeb.Controllers
             };
             ViewData["componentScripts"] = scripts;
 
-            // Load banner and product_news from DB
+            // load fragments
             var fragments = new List<IHtmlContent>();
 
-            var bannerFragment = _db.ContentFragments
+            var fragmentNames = new[] { "banner", "product_news", "testimonials", "partners" };
+            var dbFragments = _db.ContentFragments
                 .AsNoTracking()
-                .FirstOrDefault(f => f.Name == "banner");
-            if (bannerFragment != null)
-            {
-                fragments.Add(new HtmlString(bannerFragment.HtmlContent));
-            }
+                .Where(f => fragmentNames.Contains(f.Name))
+                .OrderBy(f => f.DisplayOrder)
+                .ToList();
 
-            // TODO: load testimonials later
-
-            var productNewsFragment = _db.ContentFragments
-                .AsNoTracking()
-                .FirstOrDefault(f => f.Name == "product_news");
-            if (productNewsFragment != null)
+            foreach (var f in dbFragments)
             {
-                fragments.Add(new HtmlString(productNewsFragment.HtmlContent));
+                if (!string.IsNullOrWhiteSpace(f.HtmlContent))
+                {
+                    fragments.Add(new HtmlString(f.HtmlContent));
+                }
             }
 
             return View(fragments);

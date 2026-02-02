@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BravoWeb.ViewComponents
 {
-    // Use in views with:
-    // @await Component.InvokeAsync("Banner")
-    // or with parameters:
-    // @await Component.InvokeAsync("Banner", new { title = "My Title", subtitle = "My subtitle", ctaText = "VỀ CHÚNG TÔI", ctaHref = "#" })
     [ViewComponent(Name = "Banner")]
 
     public class BannerViewComponent : ViewComponent
