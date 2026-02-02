@@ -1,0 +1,19 @@
+@model BravoWeb.Models.ContentFragment
+@{
+    ViewData["Title"] = "Delete Content Fragment";
+}
+
+<h1>Delete Content Fragment</h1>
+
+<div>
+    <h3>@Model.Name</h3>
+    <div>
+        @Html.Raw(Model.HtmlContent)
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit">Delete</button>
+    <a asp-action="Index">Cancel</a>
+</form>

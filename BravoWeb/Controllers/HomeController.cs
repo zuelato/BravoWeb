@@ -39,23 +39,11 @@ namespace BravoWeb.Controllers
             };
             ViewData["componentScripts"] = scripts;
 
-            // load fragments
-            var fragments = new List<IHtmlContent>();
-
-            var fragmentNames = new[] { "banner", "product_news", "testimonials", "partners" };
-            var dbFragments = _db.ContentFragments
+            // load all fragments ordered by DisplayOrder so new fragments appear automatically
+            var fragments = _db.ContentFragments
                 .AsNoTracking()
-                .Where(f => fragmentNames.Contains(f.Name))
                 .OrderBy(f => f.DisplayOrder)
                 .ToList();
-
-            foreach (var f in dbFragments)
-            {
-                if (!string.IsNullOrWhiteSpace(f.HtmlContent))
-                {
-                    fragments.Add(new HtmlString(f.HtmlContent));
-                }
-            }
 
             return View(fragments);
         }

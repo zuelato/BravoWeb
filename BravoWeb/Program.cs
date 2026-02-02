@@ -25,7 +25,7 @@ using (var scope = app.Services.CreateScope())
         if (!db.ContentFragments.Any(f => f.Name == "banner"))
         {
             var banner = """
-<div class="banner-container" style="background-image: url('https://thumbs2.imgbox.com/c5/cf/nBfprcbk_t.jpg')">
+<div class="banner-container">
     <div class="banner-container-content">
         <div class="banner-container-content-title">
             <p>Giải pháp phần mềm quản trị doanh nghiệp BRAVO ERP</p>

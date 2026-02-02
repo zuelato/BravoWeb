@@ -1,4 +1,4 @@
-﻿@model List<Microsoft.AspNetCore.Html.IHtmlContent>
+﻿@model List<BravoWeb.Models.ContentFragment>
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -7,7 +7,7 @@
     <div class="site-body">
         @foreach (var fragment in Model)
         {
-            @fragment
+            @Html.Raw(fragment.HtmlContent)
         }
     </div>
 

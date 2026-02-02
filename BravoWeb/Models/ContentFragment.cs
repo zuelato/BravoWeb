@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BravoWeb.Models;
 
@@ -13,4 +14,11 @@ public class ContentFragment
     public string HtmlContent { get; set; } = null!;
 
     public int DisplayOrder { get; set; } = 0;
+
+    [NotMapped]
+    public string Content
+    {
+        get => HtmlContent;
+        set => HtmlContent = value;
+    }
 }
