@@ -1,14 +1,13 @@
 @model BravoWeb.Models.ContentFragment
-@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Edit Content Fragment";
-    var tinymceKey = Configuration["TinyMce:ApiKey"];
-    var tinymceUrl = $"https://cdn.tiny.cloud/1/{tinymceKey}/tinymce/6/tinymce.min.js";
+    int? pageId = ViewBag.PageId as int?;
 }
 
 <h1>Edit Content Fragment</h1>
 
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" method="post" onsubmit="return syncEditor()">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <div>
         <label asp-for="Name"></label>
@@ -21,18 +20,39 @@
     </div>
     <div>
         <label asp-for="HtmlContent">HTML Content</label>
-        <textarea asp-for="HtmlContent" id="htmlContent" rows="15" cols="80"></textarea>
+        <textarea asp-for="HtmlContent" id="htmlContent" style="display:none;" rows="15" cols="80"></textarea>
+        <div id="monacoEditor" style="height:480px;border:1px solid #ddd;"></div>
     </div>
 
     <div>
-        <button type="submit">Save</button>
-        <a asp-action="Index">Cancel</a>
+        <button id="saveBtn" type="submit">Save</button>
+        <a asp-action="Index" asp-route-pageId="@pageId">Cancel</a>
     </div>
 </form>
 
 @section Scripts {
-    <script src="@tinymceUrl" referrerpolicy="origin"></script>
+    <script src="~/lib/monaco/vs/loader.js"></script>
     <script>
-        tinymce.init({ selector: '#htmlContent', menubar: false });
+        require.config({ paths: { 'vs': '/lib/monaco/vs' }});
+        var editor;
+        document.getElementById('saveBtn').disabled = true;
+
+        require(['vs/editor/editor.main'], function () {
+            var initial = document.getElementById('htmlContent').value || '';
+            editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+                value: initial,
+                language: 'html',
+                automaticLayout: true,
+                minimap: { enabled: false }
+            });
+            document.getElementById('saveBtn').disabled = false;
+        });
+
+        function syncEditor() {
+            if (editor) {
+                document.getElementById('htmlContent').value = editor.getValue();
+            }
+            return true;
+        }
     </script>
 }

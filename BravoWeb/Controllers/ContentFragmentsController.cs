@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using BravoWeb.Data;
 using BravoWeb.Models;
@@ -16,10 +18,71 @@ namespace BravoWeb.Controllers
             _context = context;
         }
 
-        // GET: ContentFragments
-        public async Task<IActionResult> Index()
+        /// <summary>
+        /// Ensures DisplayOrder values are sequential (0, 1, 2, ...) for a given page scope.
+        /// </summary>
+        private async Task NormalizeOrderAsync(int? pageId)
         {
-            return View(await _context.ContentFragments.OrderBy(f => f.DisplayOrder).ToListAsync());
+            var ordered = await _context.ContentFragments
+                .Where(f => f.PageId == pageId)
+                .OrderBy(f => f.DisplayOrder)
+                .ThenBy(f => f.Id)
+                .ToListAsync();
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                if (ordered[i].DisplayOrder != i)
+                {
+                    ordered[i].DisplayOrder = i;
+                }
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        // GET: ContentFragments?pageId=5
+        public async Task<IActionResult> Index(int? pageId)
+        {
+            await NormalizeOrderAsync(pageId);
+
+            ViewBag.PageId = pageId;
+            ViewBag.PageName = "Home Page";
+
+            if (pageId.HasValue)
+            {
+                var page = await _context.SitePages.FindAsync(pageId.Value);
+                if (page != null) ViewBag.PageName = page.Title;
+            }
+
+            var fragments = await _context.ContentFragments
+                .Where(f => f.PageId == pageId)
+                .OrderBy(f => f.DisplayOrder)
+                .ToListAsync();
+
+            return View(fragments);
+        }
+
+        // POST: ContentFragments/Reorder (AJAX)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reorder([FromBody] List<int> orderedIds)
+        {
+            if (orderedIds == null || orderedIds.Count == 0)
+                return BadRequest();
+
+            var fragments = await _context.ContentFragments
+                .Where(f => orderedIds.Contains(f.Id))
+                .ToListAsync();
+            var lookup = fragments.ToDictionary(f => f.Id);
+
+            for (int i = 0; i < orderedIds.Count; i++)
+            {
+                if (lookup.TryGetValue(orderedIds[i], out var fragment))
+                {
+                    fragment.DisplayOrder = i;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         // GET: ContentFragments/Details/5
@@ -28,26 +91,42 @@ namespace BravoWeb.Controllers
             if (id == null) return NotFound();
             var fragment = await _context.ContentFragments.FirstOrDefaultAsync(m => m.Id == id);
             if (fragment == null) return NotFound();
+            ViewBag.PageId = fragment.PageId;
             return View(fragment);
         }
 
-        // GET: ContentFragments/Create
-        public IActionResult Create()
+        // GET: ContentFragments/Create?pageId=5
+        public IActionResult Create(int? pageId)
         {
-            return View(new ContentFragment());
+            var fragment = new ContentFragment { PageId = pageId };
+            ViewBag.PageId = pageId;
+            return View(fragment);
         }
 
         // POST: ContentFragments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,DisplayOrder")] ContentFragment contentFragment)
+        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,PageId")] ContentFragment contentFragment)
         {
             if (ModelState.IsValid)
             {
+                // Push all existing fragments for this page down by 1
+                var allFragments = await _context.ContentFragments
+                    .Where(f => f.PageId == contentFragment.PageId)
+                    .ToListAsync();
+                foreach (var f in allFragments)
+                {
+                    f.DisplayOrder += 1;
+                }
+
+                // New fragment goes to position 0 (top)
+                contentFragment.DisplayOrder = 0;
+
                 _context.Add(contentFragment);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pageId = contentFragment.PageId });
             }
+            ViewBag.PageId = contentFragment.PageId;
             return View(contentFragment);
         }
 
@@ -57,20 +136,25 @@ namespace BravoWeb.Controllers
             if (id == null) return NotFound();
             var fragment = await _context.ContentFragments.FindAsync(id);
             if (fragment == null) return NotFound();
+            ViewBag.PageId = fragment.PageId;
             return View(fragment);
         }
 
         // POST: ContentFragments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent,DisplayOrder")] ContentFragment contentFragment)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent")] ContentFragment contentFragment)
         {
             if (id != contentFragment.Id) return NotFound();
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(contentFragment);
+                    var existing = await _context.ContentFragments.FirstOrDefaultAsync(f => f.Id == id);
+                    if (existing == null) return NotFound();
+                    existing.Name = contentFragment.Name;
+                    existing.HtmlContent = contentFragment.HtmlContent;
+                    // Keep existing DisplayOrder and PageId
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -78,7 +162,8 @@ namespace BravoWeb.Controllers
                     if (!ContentFragmentExists(contentFragment.Id)) return NotFound();
                     throw;
                 }
-                return RedirectToAction(nameof(Index));
+                var frag = await _context.ContentFragments.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
+                return RedirectToAction(nameof(Index), new { pageId = frag?.PageId });
             }
             return View(contentFragment);
         }
@@ -89,6 +174,7 @@ namespace BravoWeb.Controllers
             if (id == null) return NotFound();
             var fragment = await _context.ContentFragments.FirstOrDefaultAsync(m => m.Id == id);
             if (fragment == null) return NotFound();
+            ViewBag.PageId = fragment.PageId;
             return View(fragment);
         }
 
@@ -98,12 +184,14 @@ namespace BravoWeb.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var fragment = await _context.ContentFragments.FindAsync(id);
+            int? pageId = fragment?.PageId;
             if (fragment != null)
             {
                 _context.ContentFragments.Remove(fragment);
                 await _context.SaveChangesAsync();
+                await NormalizeOrderAsync(pageId);
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { pageId });
         }
 
         private bool ContentFragmentExists(int id)

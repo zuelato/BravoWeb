@@ -32,11 +32,10 @@
 </form>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
+    <script src="~/lib/monaco/vs/loader.js"></script>
     <script>
-        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
+        require.config({ paths: { 'vs': '/lib/monaco/vs' }});
         let editor;
-        let editorInitialized = false;
         document.getElementById('saveBtn').disabled = true;
 
         require(['vs/editor/editor.main'], function () {
@@ -47,17 +46,14 @@
                 automaticLayout: true,
                 minimap: { enabled: false }
             });
-            editorInitialized = true;
             document.getElementById('saveBtn').disabled = false;
         });
 
         function syncEditor() {
-            if (editorInitialized && editor) {
+            if (editor) {
                 document.getElementById('htmlContent').value = editor.getValue();
-            } else {
-                document.getElementById('htmlContent').value = document.getElementById('htmlContent').value || '';
             }
-            return true; // allow form submit
+            return true;
         }
     </script>
 }

@@ -39,9 +39,10 @@ namespace BravoWeb.Controllers
             };
             ViewData["componentScripts"] = scripts;
 
-            // load all fragments ordered by DisplayOrder so new fragments appear automatically
+            // Load only home page fragments (PageId is null)
             var fragments = _db.ContentFragments
                 .AsNoTracking()
+                .Where(f => f.PageId == null)
                 .OrderBy(f => f.DisplayOrder)
                 .ToList();
 

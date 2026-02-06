@@ -1,30 +1,36 @@
-@model IEnumerable<BravoWeb.Models.ContentFragment>
+﻿@model IEnumerable<BravoWeb.Models.ContentFragment>
 @{
     ViewData["Title"] = "Content Fragments";
+    var items = Model.ToList();
+    int? pageId = ViewBag.PageId as int?;
+    string pageName = ViewBag.PageName ?? "Home Page";
 }
 
-<h1>Content Fragments</h1>
+<h1>Content Fragments - @pageName</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" asp-route-pageId="@pageId">Create New</a>
+    |
+    <a asp-controller="SitePages" asp-action="Index">Back to Pages</a>
 </p>
 
-<table>
+<table id="fragmentsTable">
     <thead>
         <tr>
-            <th>Id</th>
+            <th style="width:40px;"></th>
+            <th>Order</th>
             <th>Name</th>
-            <th>DisplayOrder</th>
-            <th></th>
+            <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
-        @foreach (var item in Model)
+    <tbody id="fragmentsBody">
+        @for (int i = 0; i < items.Count; i++)
         {
-            <tr>
-                <td>@item.Id</td>
+            var item = items[i];
+            <tr draggable="true" data-id="@item.Id" style="cursor:grab;">
+                <td style="text-align:center; font-size:18px;">☰</td>
+                <td class="row-order">@(i + 1)</td>
                 <td>@item.Name</td>
-                <td>@item.DisplayOrder</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
@@ -34,3 +40,114 @@
         }
     </tbody>
 </table>
+
+<div id="saveStatus" style="margin-top:8px; color:green; display:none;">Order saved</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tbody = document.getElementById('fragmentsBody');
+            let dragRow = null;
+
+            tbody.addEventListener('dragstart', function (e) {
+                dragRow = e.target.closest('tr');
+                if (!dragRow) return;
+                dragRow.style.opacity = '0.4';
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', ''); // required for Firefox
+            });
+
+            tbody.addEventListener('dragend', function (e) {
+                if (dragRow) dragRow.style.opacity = '1';
+                dragRow = null;
+                // remove all drag-over styles
+                tbody.querySelectorAll('tr').forEach(r => r.style.borderTop = '');
+            });
+
+            tbody.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const targetRow = e.target.closest('tr');
+                if (!targetRow || targetRow === dragRow) return;
+
+                // show visual indicator
+                tbody.querySelectorAll('tr').forEach(r => r.style.borderTop = '');
+                const rect = targetRow.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    targetRow.style.borderTop = '3px solid #007bff';
+                } else {
+                    targetRow.style.borderTop = '';
+                    const next = targetRow.nextElementSibling;
+                    if (next) next.style.borderTop = '3px solid #007bff';
+                }
+            });
+
+            tbody.addEventListener('drop', function (e) {
+                e.preventDefault();
+                const targetRow = e.target.closest('tr');
+                if (!targetRow || !dragRow || targetRow === dragRow) return;
+
+                // Determine insert position
+                const rect = targetRow.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    tbody.insertBefore(dragRow, targetRow);
+                } else {
+                    tbody.insertBefore(dragRow, targetRow.nextElementSibling);
+                }
+
+                // Update visual order numbers
+                updateOrderNumbers();
+
+                // Save to server
+                saveOrder();
+            });
+
+            function updateOrderNumbers() {
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach((row, i) => {
+                    const orderCell = row.querySelector('.row-order');
+                    if (orderCell) orderCell.textContent = i + 1;
+                });
+            }
+
+            function saveOrder() {
+                const rows = tbody.querySelectorAll('tr[data-id]');
+                const orderedIds = Array.from(rows).map(r => parseInt(r.dataset.id));
+
+                // Get antiforgery token from the page
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    || document.querySelector('meta[name="RequestVerificationToken"]')?.content;
+
+                fetch('/ContentFragments/Reorder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token || ''
+                    },
+                    body: JSON.stringify(orderedIds)
+                })
+                .then(r => {
+                    const status = document.getElementById('saveStatus');
+                    if (r.ok) {
+                        status.textContent = 'Order saved';
+                        status.style.color = 'green';
+                    } else {
+                        status.textContent = 'Failed to save order';
+                        status.style.color = 'red';
+                    }
+                    status.style.display = 'block';
+                    setTimeout(() => status.style.display = 'none', 2000);
+                })
+                .catch(() => {
+                    const status = document.getElementById('saveStatus');
+                    status.textContent = 'Error saving order';
+                    status.style.color = 'red';
+                    status.style.display = 'block';
+                });
+            }
+        })();
+    </script>
+    @Html.AntiForgeryToken()
+}

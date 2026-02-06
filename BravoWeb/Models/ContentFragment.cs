@@ -15,6 +15,12 @@ public class ContentFragment
 
     public int DisplayOrder { get; set; } = 0;
 
+    // Nullable FK: null = home page, otherwise belongs to a SitePage
+    public int? PageId { get; set; }
+
+    [ForeignKey("PageId")]
+    public SitePage? Page { get; set; }
+
     [NotMapped]
     public string Content
     {

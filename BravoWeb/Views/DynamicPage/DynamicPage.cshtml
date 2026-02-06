@@ -1,0 +1,13 @@
+@model BravoWeb.Models.SitePage
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<main>
+    <div class="site-body">
+        @foreach (var fragment in Model.Fragments)
+        {
+            @Html.Raw(fragment.HtmlContent)
+        }
+    </div>
+</main>

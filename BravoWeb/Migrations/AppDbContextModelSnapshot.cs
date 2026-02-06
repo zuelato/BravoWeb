@@ -71,9 +71,58 @@ namespace BravoWeb.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int?>("PageId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("PageId");
+
                     b.ToTable("ContentFragments");
+                });
+
+            modelBuilder.Entity("BravoWeb.Models.SitePage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("SitePages");
+                });
+
+            modelBuilder.Entity("BravoWeb.Models.ContentFragment", b =>
+                {
+                    b.HasOne("BravoWeb.Models.SitePage", "Page")
+                        .WithMany("Fragments")
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Page");
+                });
+
+            modelBuilder.Entity("BravoWeb.Models.SitePage", b =>
+                {
+                    b.Navigation("Fragments");
                 });
 #pragma warning restore 612, 618
         }

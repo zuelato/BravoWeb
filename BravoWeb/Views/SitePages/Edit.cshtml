@@ -1,0 +1,29 @@
+@model BravoWeb.Models.SitePage
+@{
+    ViewData["Title"] = "Edit Page";
+}
+
+<h1>Edit Page</h1>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div>
+        <label asp-for="Title"></label>
+        <input asp-for="Title" />
+        <span asp-validation-for="Title"></span>
+    </div>
+    <div>
+        <label asp-for="Slug">URL Slug</label>
+        <input asp-for="Slug" />
+        <span asp-validation-for="Slug"></span>
+    </div>
+    <div>
+        <label asp-for="IsPublished"></label>
+        <input asp-for="IsPublished" type="checkbox" />
+    </div>
+    <div>
+        <button type="submit">Save</button>
+        <a asp-action="Index">Cancel</a>
+    </div>
+</form>

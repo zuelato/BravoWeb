@@ -1,0 +1,16 @@
+@model BravoWeb.Models.SitePage
+@{
+    ViewData["Title"] = "Delete Page";
+}
+
+<h1>Delete Page</h1>
+
+<p>Are you sure you want to delete the page <strong>@Model.Title</strong> (/@Model.Slug)?</p>
+<p>This will also delete all content fragments associated with this page.</p>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button type="submit">Delete</button>
+    <a asp-action="Index">Cancel</a>
+</form>

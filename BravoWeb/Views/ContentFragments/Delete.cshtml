@@ -1,6 +1,7 @@
 @model BravoWeb.Models.ContentFragment
 @{
     ViewData["Title"] = "Delete Content Fragment";
+    int? pageId = ViewBag.PageId as int?;
 }
 
 <h1>Delete Content Fragment</h1>
@@ -13,7 +14,8 @@
 </div>
 
 <form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <button type="submit">Delete</button>
-    <a asp-action="Index">Cancel</a>
+    <a asp-action="Index" asp-route-pageId="@pageId">Cancel</a>
 </form>

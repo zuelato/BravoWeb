@@ -69,15 +69,14 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs/loader.js"></script>
+    <script src="~/lib/monaco/vs/loader.js"></script>
     <script>
-        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.34.1/min/vs' }});
+        require.config({ paths: { 'vs': '/lib/monaco/vs' }});
         let addEditor;
         let addEditorInitialized = false;
 
         document.getElementById('openAddBtn').addEventListener('click', function () {
             document.getElementById('addModal').style.display = 'flex';
-            // disable save until editor initialized to avoid empty submissions
             document.getElementById('addSaveBtn').disabled = true;
             if (!addEditorInitialized) {
                 require(['vs/editor/editor.main'], function () {
@@ -100,14 +99,12 @@
         });
 
         function syncEditorAndSubmit() {
-            // copy editor content back to hidden textarea before submit
             if (addEditorInitialized && addEditor) {
                 document.getElementById('addHtmlContent').value = addEditor.getValue();
             } else {
-                // if editor not ready, ensure hidden textarea has at least an empty string
                 document.getElementById('addHtmlContent').value = document.getElementById('addHtmlContent').value || '';
             }
-            return true; // allow form to submit
+            return true;
         }
     </script>
 }

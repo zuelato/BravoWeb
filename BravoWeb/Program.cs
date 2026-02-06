@@ -10,7 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null)));
 
 var app = builder.Build();
 
@@ -344,10 +348,16 @@ app.MapStaticAssets();
 // Map Razor Pages so admin pages are reachable
 app.MapRazorPages();
 
+// Default MVC routes (higher priority — matched first)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+// Dynamic page catch-all (lower priority — only matched if no MVC controller handled it)
+app.MapControllerRoute(
+    name: "dynamic-page",
+    pattern: "{slug}",
+    defaults: new { controller = "DynamicPage", action = "Show" });
 
 app.Run();

@@ -1,0 +1,28 @@
+@model BravoWeb.Models.SitePage
+@{
+    ViewData["Title"] = "Create Page";
+}
+
+<h1>Create New Page</h1>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div>
+        <label asp-for="Title"></label>
+        <input asp-for="Title" />
+        <span asp-validation-for="Title"></span>
+    </div>
+    <div>
+        <label asp-for="Slug">URL Slug (e.g. "news", "about")</label>
+        <input asp-for="Slug" />
+        <span asp-validation-for="Slug"></span>
+    </div>
+    <div>
+        <label asp-for="IsPublished"></label>
+        <input asp-for="IsPublished" type="checkbox" checked="checked" />
+    </div>
+    <div>
+        <button type="submit">Create</button>
+        <a asp-action="Index">Cancel</a>
+    </div>
+</form>
