@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Views\Shared\Components\Dynamic\" />
-    <Folder Include="Views\Shared\Components\ProductNews\" />
     <Folder Include="Views\Shared\Components\RecentlyNews\" />
   </ItemGroup>
 
@@ -18,6 +17,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

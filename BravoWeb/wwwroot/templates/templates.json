@@ -1,0 +1,19 @@
+﻿[
+  {
+    "id": "blank",
+    "name": "Trống",
+    "icon": "📄",
+    "description": "Bắt đầu từ đầu với editor trống.",
+    "files": {}
+  },
+  {
+    "id": "product-news",
+    "name": "Tin tức sản phẩm",
+    "icon": "📰",
+    "description": "Khối tin tức dạng card 3 cột với tiêu đề, tag, và mô tả.",
+    "files": {
+      "html": "product-news.html",
+      "css": "product-news.css"
+    }
+  }
+]

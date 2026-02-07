@@ -18,6 +18,13 @@ namespace BravoWeb.Controllers
         // Mapped via explicit route in Program.cs — not via attribute routing
         public async Task<IActionResult> Show(string slug)
         {
+            var styles = new List<string>
+            {
+                Url.Content("~/css/banner.css"),
+                Url.Content("~/css/product_news.css"),
+                Url.Content("~/css/testimonials.css"),
+                Url.Content("~/css/partner.css")
+            };
             if (string.IsNullOrWhiteSpace(slug)) return NotFound();
 
             var page = await _context.SitePages

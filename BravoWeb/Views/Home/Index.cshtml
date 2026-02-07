@@ -7,8 +7,15 @@
     <div class="site-body">
         @foreach (var fragment in Model)
         {
+            if (!string.IsNullOrWhiteSpace(fragment.CssContent))
+            {
+                @Html.Raw($"<style>{fragment.CssContent}</style>")
+            }
             @Html.Raw(fragment.HtmlContent)
+            if (!string.IsNullOrWhiteSpace(fragment.JsContent))
+            {
+                @Html.Raw($"<script>{fragment.JsContent}</script>")
+            }
         }
     </div>
-
 </main>

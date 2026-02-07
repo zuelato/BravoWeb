@@ -1,0 +1,98 @@
+.product_news-section-container {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    background: #fff;
+}
+
+.product_news-section-container .product_news-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 40px 0;
+    padding-left: var(--site-side-margin, 20%);
+    padding-right: var(--site-side-margin, 20%);
+}
+
+.see-all-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background-color: #f8ae49;
+    color: white;
+    border-radius: 10px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.see-all-button:hover {
+    background-color: #01a58c;
+}
+
+.product_news-lower-section-content {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+    gap: 24px;
+    margin-top: 0;
+}
+
+@media (max-width: 992px) {
+    .product_news-lower-section-content {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .product_news-lower-section-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+.product_news-news-card {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    box-shadow: 6px 12px 30px rgba(0,0,0,0.18);
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.product_news-news-card .image {
+    flex: 0 0 40%;
+    background-color: #01a58c;          /* fallback when no image set */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.product_news-news-card .product_news-news-block {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    padding-left: var(--site-side-margin, 10%);
+    padding-right: var(--site-side-margin, 10%);
+    gap: 10px;
+    color: black;
+}
+
+.product_news-news-tag {
+    width: 50%;
+    padding: 7px;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    border-radius: 10px;
+    background: #01a58c;
+    color: white;
+}
+
+.product_news-news-title {
+    font-size: 21px;
+    font-weight: 600;
+}

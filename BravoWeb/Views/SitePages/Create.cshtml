@@ -1,9 +1,9 @@
-@model BravoWeb.Models.SitePage
+﻿@model BravoWeb.Models.SitePage
 @{
     ViewData["Title"] = "Create Page";
 }
 
-<h1>Create New Page</h1>
+<h1>Tạo Trang Mới</h1>
 
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
@@ -13,7 +13,7 @@
         <span asp-validation-for="Title"></span>
     </div>
     <div>
-        <label asp-for="Slug">URL Slug (e.g. "news", "about")</label>
+        <label asp-for="Slug">URL</label>
         <input asp-for="Slug" />
         <span asp-validation-for="Slug"></span>
     </div>
@@ -22,7 +22,7 @@
         <input asp-for="IsPublished" type="checkbox" checked="checked" />
     </div>
     <div>
-        <button type="submit">Create</button>
-        <a asp-action="Index">Cancel</a>
+        <button type="submit">Tạo</button>
+        <a asp-action="Index">Huỷ</a>
     </div>
 </form>

@@ -13,6 +13,10 @@ public class ContentFragment
     [Required]
     public string HtmlContent { get; set; } = null!;
 
+    public string? CssContent { get; set; }
+
+    public string? JsContent { get; set; }
+
     public int DisplayOrder { get; set; } = 0;
 
     // Nullable FK: null = home page, otherwise belongs to a SitePage

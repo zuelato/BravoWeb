@@ -106,7 +106,7 @@ namespace BravoWeb.Controllers
         // POST: ContentFragments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,PageId")] ContentFragment contentFragment)
+        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,CssContent,JsContent,PageId")] ContentFragment contentFragment)
         {
             if (ModelState.IsValid)
             {
@@ -143,7 +143,7 @@ namespace BravoWeb.Controllers
         // POST: ContentFragments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent")] ContentFragment contentFragment)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent,CssContent,JsContent")] ContentFragment contentFragment)
         {
             if (id != contentFragment.Id) return NotFound();
             if (ModelState.IsValid)
@@ -154,6 +154,8 @@ namespace BravoWeb.Controllers
                     if (existing == null) return NotFound();
                     existing.Name = contentFragment.Name;
                     existing.HtmlContent = contentFragment.HtmlContent;
+                    existing.CssContent = contentFragment.CssContent;
+                    existing.JsContent = contentFragment.JsContent;
                     // Keep existing DisplayOrder and PageId
                     await _context.SaveChangesAsync();
                 }

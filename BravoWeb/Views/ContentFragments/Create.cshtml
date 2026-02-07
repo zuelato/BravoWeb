@@ -1,57 +1,214 @@
-@model BravoWeb.Models.ContentFragment
+﻿@model BravoWeb.Models.ContentFragment
 @{
     ViewData["Title"] = "Create Content Fragment";
     int? pageId = ViewBag.PageId as int?;
 }
 
-<h1>Create Content Fragment</h1>
+<h1>Tạo Nội Dung Mới</h1>
 
-<form asp-action="Create" method="post" onsubmit="return syncEditor()">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="PageId" value="@(pageId?.ToString() ?? "")" />
-    <div>
-        <label asp-for="Name"></label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
-    </div>
-    <div>
-        <label asp-for="DisplayOrder"></label>
-        <input asp-for="DisplayOrder" type="number" />
-    </div>
-    <div>
-        <label asp-for="HtmlContent">HTML Content</label>
-        <textarea asp-for="HtmlContent" id="htmlContent" style="display:none;" rows="15" cols="80"></textarea>
-        <div id="monacoEditor" style="height:480px;border:1px solid #ddd;"></div>
-    </div>
+<!-- Template Picker -->
+<div id="templatePicker">
+    <h4 style="margin-bottom:4px;">Chọn Template</h4>
+    <p style="color:#666;margin-bottom:16px;">Chọn mẫu nội dung cho nội dung mới của bạn.</p>
 
-    <div>
-        <button id="saveBtn" type="submit">Create</button>
-        <a asp-action="Index" asp-route-pageId="@pageId">Cancel</a>
+    <div id="templateCards" style="display:flex; gap:16px; flex-wrap:wrap;">
+        <!-- Cards injected dynamically from templates.json -->
+
+        <!-- Coming soon placeholder (always last) -->
+        <div class="coming-soon-placeholder" style="
+            width:200px;
+            border:2px dashed #e0e0e0;
+            border-radius:8px;
+            padding:24px 16px;
+            text-align:center;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#bbb;
+            font-size:14px;
+        ">
+            Các mẫu khác sẽ được cập nhật sớm
+        </div>
     </div>
-</form>
+</div>
+
+<!-- Editor Form (hidden until a template is chosen) -->
+<div id="editorSection" style="display:none;">
+    <form asp-action="Create" method="post" onsubmit="return syncEditors()">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="PageId" value="@(pageId?.ToString() ?? "")" />
+        <div>
+            <label asp-for="Name"></label>
+            <input asp-for="Name" />
+            <span asp-validation-for="Name"></span>
+        </div>
+
+        <div style="margin-top:12px;">
+            <!-- Bootstrap Nav Tabs -->
+            <ul class="nav nav-tabs" id="editorTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#htmlPane"
+                            type="button" role="tab" aria-controls="htmlPane" aria-selected="true">HTML</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="css-tab" data-bs-toggle="tab" data-bs-target="#cssPane"
+                            type="button" role="tab" aria-controls="cssPane" aria-selected="false">CSS</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="js-tab" data-bs-toggle="tab" data-bs-target="#jsPane"
+                            type="button" role="tab" aria-controls="jsPane" aria-selected="false">JavaScript</button>
+                </li>
+            </ul>
+
+            <!-- Tab Panes -->
+            <div class="tab-content" id="editorTabContent">
+                <div class="tab-pane fade show active" id="htmlPane" role="tabpanel" aria-labelledby="html-tab">
+                    <textarea asp-for="HtmlContent" id="htmlContent" style="display:none;"></textarea>
+                    <div id="htmlEditor" style="height:480px;border:1px solid #ddd;border-top:none;"></div>
+                </div>
+                <div class="tab-pane fade" id="cssPane" role="tabpanel" aria-labelledby="css-tab">
+                    <textarea asp-for="CssContent" id="cssContent" style="display:none;"></textarea>
+                    <div id="cssEditor" style="height:480px;border:1px solid #ddd;border-top:none;"></div>
+                </div>
+                <div class="tab-pane fade" id="jsPane" role="tabpanel" aria-labelledby="js-tab">
+                    <textarea asp-for="JsContent" id="jsContent" style="display:none;"></textarea>
+                    <div id="jsEditor" style="height:480px;border:1px solid #ddd;border-top:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <button id="saveBtn" type="submit">Create</button>
+            <a asp-action="Index" asp-route-pageId="@pageId">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .template-card {
+        width: 200px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 24px 16px;
+        cursor: pointer;
+        text-align: center;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        background: #fff;
+    }
+    .template-card:hover {
+        border-color: #00a88e !important;
+        box-shadow: 0 4px 12px rgba(0,168,142,0.15);
+    }
+    .template-card .template-icon {
+        font-size: 36px;
+        margin-bottom: 12px;
+        color: #888;
+    }
+    .template-card h5 {
+        margin: 0 0 6px 0;
+        font-weight: 600;
+    }
+    .template-card p {
+        margin: 0;
+        font-size: 13px;
+        color: #888;
+    }
+</style>
 
 @section Scripts {
     <script src="~/lib/monaco/vs/loader.js"></script>
     <script>
         require.config({ paths: { 'vs': '/lib/monaco/vs' }});
-        var editor;
-        document.getElementById('saveBtn').disabled = true;
+        var htmlEditor, cssEditor, jsEditor;
+        var templateManifest = [];
 
-        require(['vs/editor/editor.main'], function () {
-            var initial = document.getElementById('htmlContent').value || '';
-            editor = monaco.editor.create(document.getElementById('monacoEditor'), {
-                value: initial,
-                language: 'html',
-                automaticLayout: true,
-                minimap: { enabled: false }
+        // ── Load template manifest and build picker cards ──
+        (function () {
+            fetch('/templates/templates.json')
+                .then(function (r) { return r.json(); })
+                .then(function (templates) {
+                    templateManifest = templates;
+                    var container = document.getElementById('templateCards');
+                    var comingSoon = container.querySelector('.coming-soon-placeholder');
+
+                    templates.forEach(function (t) {
+                        var card = document.createElement('div');
+                        card.className = 'template-card';
+                        card.onclick = function () { selectTemplate(t.id); };
+                        card.innerHTML =
+                            '<div class="template-icon">' + t.icon + '</div>' +
+                            '<h5>' + t.name + '</h5>' +
+                            '<p>' + t.description + '</p>';
+                        container.insertBefore(card, comingSoon);
+                    });
+                });
+        })();
+
+        // ── Fetch a template file (returns empty string on failure) ──
+        function fetchTemplateFile(filename) {
+            if (!filename) return Promise.resolve('');
+            return fetch('/templates/' + filename)
+                .then(function (r) { return r.ok ? r.text() : ''; })
+                .catch(function () { return ''; });
+        }
+
+        // ── Template selection ──
+        function selectTemplate(templateId) {
+            var tmpl = templateManifest.find(function (t) { return t.id === templateId; });
+            var files = (tmpl && tmpl.files) || {};
+
+            // Fetch all template files in parallel
+            Promise.all([
+                fetchTemplateFile(files.html),
+                fetchTemplateFile(files.css),
+                fetchTemplateFile(files.js)
+            ]).then(function (results) {
+                initEditors(results[0], results[1], results[2]);
             });
-            document.getElementById('saveBtn').disabled = false;
-        });
+        }
 
-        function syncEditor() {
-            if (editor) {
-                document.getElementById('htmlContent').value = editor.getValue();
-            }
+        // ── Initialise Monaco editors with given content ──
+        function initEditors(initialHtml, initialCss, initialJs) {
+            document.getElementById('templatePicker').style.display = 'none';
+            document.getElementById('editorSection').style.display = 'block';
+            document.getElementById('saveBtn').disabled = true;
+
+            require(['vs/editor/editor.main'], function () {
+                htmlEditor = monaco.editor.create(document.getElementById('htmlEditor'), {
+                    value: initialHtml || '',
+                    language: 'html',
+                    automaticLayout: true,
+                    minimap: { enabled: false }
+                });
+                cssEditor = monaco.editor.create(document.getElementById('cssEditor'), {
+                    value: initialCss || '',
+                    language: 'css',
+                    automaticLayout: true,
+                    minimap: { enabled: false }
+                });
+                jsEditor = monaco.editor.create(document.getElementById('jsEditor'), {
+                    value: initialJs || '',
+                    language: 'javascript',
+                    automaticLayout: true,
+                    minimap: { enabled: false }
+                });
+                document.getElementById('saveBtn').disabled = false;
+
+                // Re-layout editors when switching tabs
+                document.querySelectorAll('#editorTabs button[data-bs-toggle="tab"]').forEach(function (tab) {
+                    tab.addEventListener('shown.bs.tab', function () {
+                        if (htmlEditor) htmlEditor.layout();
+                        if (cssEditor) cssEditor.layout();
+                        if (jsEditor) jsEditor.layout();
+                    });
+                });
+            });
+        }
+
+        function syncEditors() {
+            if (htmlEditor) document.getElementById('htmlContent').value = htmlEditor.getValue();
+            if (cssEditor) document.getElementById('cssContent').value = cssEditor.getValue();
+            if (jsEditor) document.getElementById('jsContent').value = jsEditor.getValue();
             return true;
         }
     </script>

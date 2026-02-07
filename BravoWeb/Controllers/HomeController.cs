@@ -21,24 +21,7 @@ namespace BravoWeb.Controllers
         }
 
         public IActionResult Index()
-
         {
-            // Register only the styles required by the fragments on this page
-            var styles = new List<string>
-            {
-                Url.Content("~/css/banner.css"),
-                Url.Content("~/css/product_news.css"),
-                Url.Content("~/css/testimonials.css"),
-                Url.Content("~/css/partner.css")
-            };
-            ViewData["componentStyles"] = styles;
-
-            var scripts = new List<string>
-            {
-                Url.Content("~/js/testimonials.js")
-            };
-            ViewData["componentScripts"] = scripts;
-
             // Load only home page fragments (PageId is null)
             var fragments = _db.ContentFragments
                 .AsNoTracking()
