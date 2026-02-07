@@ -9,23 +9,49 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 3,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorCodesToAdd: null)));
+
+// ── Database provider selection ──
+// Reads "DatabaseProvider" from appsettings (overridden per environment).
+// "PostgreSQL" → uses DefaultConnection with Npgsql
+// "SQLite"     → uses SqliteConnection with local file DB
+var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSQL";
+var useSqlite = dbProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase);
+
+if (useSqlite)
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+            npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorCodesToAdd: null)));
+}
 
 var app = builder.Build();
 
-// Seed initial fragments
+// ── Database initialisation ──
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        db.Database.Migrate();
+        if (useSqlite)
+        {
+            // SQLite: create schema from model (no migrations needed for local dev)
+            db.Database.EnsureCreated();
+        }
+        else
+        {
+            // PostgreSQL: apply pending migrations
+            db.Database.Migrate();
+        }
 
+        // Seed initial fragments
         if (!db.ContentFragments.Any(f => f.Name == "banner"))
         {
             var banner = """
