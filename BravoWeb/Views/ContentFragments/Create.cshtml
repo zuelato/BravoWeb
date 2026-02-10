@@ -13,22 +13,43 @@
         <p style="color:#666;margin-bottom:16px;">Chọn mẫu nội dung cho nội dung mới của bạn.</p>
 
         <div id="templateCards" style="display:flex; gap:16px; flex-wrap:wrap;">
-            <!-- Cards injected dynamically from templates.json -->
+            <!-- Built-in cards injected dynamically from templates.json -->
+            <!-- Custom cards injected from /api/custom-templates -->
+            <!-- "Create Your Own" card (always last) -->
+            <div class="template-card create-own-card" onclick="openSaveTemplateModal()">
+                <div class="template-icon">✨</div>
+                <h5>Tạo mẫu riêng</h5>
+                <p>Tạo template tùy chỉnh để sử dụng lại sau.</p>
+            </div>
+        </div>
+    </div>
 
-            <!-- Coming soon placeholder (always last) -->
-            <div class="coming-soon-placeholder" style="
-                width:200px;
-                border:2px dashed #e0e0e0;
-                border-radius:8px;
-                padding:24px 16px;
-                text-align:center;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                color:#bbb;
-                font-size:14px;
-            ">
-                Các mẫu khác sẽ được cập nhật sớm
+    <!-- Save-as-Template Modal -->
+    <div id="saveTemplateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; display:none; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:10px; padding:28px; width:420px; max-width:90vw; box-shadow:0 12px 40px rgba(0,0,0,0.2);">
+            <h4 style="margin:0 0 16px 0;">Lưu Template Mới</h4>
+            <div class="cms-form">
+                <div class="form-group">
+                    <label>Tên template *</label>
+                    <input type="text" id="tmplName" placeholder="VD: Hero Banner, Contact Form..." />
+                </div>
+                <div class="form-group">
+                    <label>Icon (emoji)</label>
+                    <input type="text" id="tmplIcon" value="🧩" style="width:60px;" />
+                </div>
+                <div class="form-group">
+                    <label>Mô tả ngắn</label>
+                    <input type="text" id="tmplDesc" placeholder="Mô tả ngắn về template này" />
+                </div>
+
+                <p style="color:#666; font-size:13px; margin-bottom:12px;">
+                    Bạn sẽ chỉnh sửa nội dung HTML/CSS/JS trong editor. Sau khi bấm <strong>Lưu Template</strong>, mẫu sẽ được lưu lại để dùng cho lần sau.
+                </p>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cms btn-cms-primary" onclick="startCustomTemplate()">Tiếp tục</button>
+                    <button type="button" class="btn-cms btn-cms-secondary" onclick="closeSaveTemplateModal()">Huỷ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -80,6 +101,11 @@
 
             <div class="form-actions">
                 <button id="saveBtn" type="submit" class="btn-cms btn-cms-primary">Create</button>
+                <!-- Save-as-template button (only visible when creating a custom template) -->
+                <button id="saveAsTemplateBtn" type="button" class="btn-cms btn-cms-secondary" style="display:none;"
+                        onclick="saveAsTemplate()">
+                    💾 Lưu Template
+                </button>
                 <a asp-action="Index" asp-route-pageId="@pageId" class="btn-cms btn-cms-secondary">Cancel</a>
             </div>
         </form>
@@ -115,6 +141,39 @@
         font-size: 13px;
         color: #888;
     }
+    /* "Create your own" card — dashed border */
+    .create-own-card {
+        border-style: dashed;
+        border-color: #00a88e;
+    }
+    .create-own-card .template-icon { color: #00a88e; }
+    .create-own-card h5 { color: #00a88e; }
+    /* Custom template cards — subtle accent */
+    .custom-template-card {
+        border-color: #c5a3ff;
+    }
+    .custom-template-card:hover {
+        border-color: #9b6dff !important;
+        box-shadow: 0 4px 12px rgba(155,109,255,0.15);
+    }
+    /* Delete badge on custom cards */
+    .custom-template-card .delete-tmpl {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 13px;
+        line-height: 22px;
+        text-align: center;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+    .custom-template-card:hover .delete-tmpl { opacity: 1; }
 </style>
 
 @section Scripts {
@@ -123,16 +182,19 @@
         require.config({ paths: { 'vs': '/lib/monaco/vs' }});
         var htmlEditor, cssEditor, jsEditor;
         var templateManifest = [];
+        var isCustomTemplateMode = false;
+        var pendingCustomMeta = {};
 
-        // ── Load template manifest and build picker cards ──
+        // ── Load built-in templates from manifest ──
         (function () {
+            var container = document.getElementById('templateCards');
+            var createOwnCard = container.querySelector('.create-own-card');
+
+            // 1) Load built-in templates
             fetch('/templates/templates.json')
                 .then(function (r) { return r.json(); })
                 .then(function (templates) {
                     templateManifest = templates;
-                    var container = document.getElementById('templateCards');
-                    var comingSoon = container.querySelector('.coming-soon-placeholder');
-
                     templates.forEach(function (t) {
                         var card = document.createElement('div');
                         card.className = 'template-card';
@@ -141,12 +203,34 @@
                             '<div class="template-icon">' + t.icon + '</div>' +
                             '<h5>' + t.name + '</h5>' +
                             '<p>' + t.description + '</p>';
-                        container.insertBefore(card, comingSoon);
+                        container.insertBefore(card, createOwnCard);
+                    });
+
+                    // 2) Then load custom templates
+                    return fetch('/api/custom-templates');
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (customs) {
+                    customs.forEach(function (ct) {
+                        var card = document.createElement('div');
+                        card.className = 'template-card custom-template-card';
+                        card.style.position = 'relative';
+                        card.onclick = function (e) {
+                            if (e.target.classList.contains('delete-tmpl')) return;
+                            selectCustomTemplate(ct.id);
+                        };
+                        var numericId = ct.id.replace('custom-', '');
+                        card.innerHTML =
+                            '<div class="delete-tmpl" title="Xoá template" onclick="deleteCustomTemplate(' + numericId + ', this.parentElement)">×</div>' +
+                            '<div class="template-icon">' + ct.icon + '</div>' +
+                            '<h5>' + ct.name + '</h5>' +
+                            '<p>' + ct.description + '</p>';
+                        container.insertBefore(card, createOwnCard);
                     });
                 });
         })();
 
-        // ── Fetch a template file (returns empty string on failure) ──
+        // ── Fetch a built-in template file ──
         function fetchTemplateFile(filename) {
             if (!filename) return Promise.resolve('');
             return fetch('/templates/' + filename)
@@ -154,8 +238,11 @@
                 .catch(function () { return ''; });
         }
 
-        // ── Template selection ──
+        // ── Select a built-in template ──
         function selectTemplate(templateId) {
+            isCustomTemplateMode = false;
+            document.getElementById('saveAsTemplateBtn').style.display = 'none';
+
             var tmpl = templateManifest.find(function (t) { return t.id === templateId; });
             var files = (tmpl && tmpl.files) || {};
 
@@ -165,6 +252,89 @@
                 fetchTemplateFile(files.js)
             ]).then(function (results) {
                 initEditors(results[0], results[1], results[2]);
+            });
+        }
+
+        // ── Select a custom template ──
+        function selectCustomTemplate(compositeId) {
+            isCustomTemplateMode = false;
+            document.getElementById('saveAsTemplateBtn').style.display = 'none';
+
+            var numericId = compositeId.replace('custom-', '');
+            fetch('/api/custom-templates/' + numericId)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    initEditors(data.html, data.css, data.js);
+                });
+        }
+
+        // ── Delete a custom template ──
+        function deleteCustomTemplate(id, cardEl) {
+            if (!confirm('Xoá template này?')) return;
+            fetch('/api/custom-templates/' + id, { method: 'DELETE' })
+                .then(function (r) {
+                    if (r.ok && cardEl) cardEl.remove();
+                });
+        }
+
+        // ── "Create Your Own" flow ──
+        function openSaveTemplateModal() {
+            var modal = document.getElementById('saveTemplateModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeSaveTemplateModal() {
+            document.getElementById('saveTemplateModal').style.display = 'none';
+        }
+
+        function startCustomTemplate() {
+            var name = document.getElementById('tmplName').value.trim();
+            if (!name) { alert('Vui lòng nhập tên template.'); return; }
+
+            pendingCustomMeta = {
+                name: name,
+                icon: document.getElementById('tmplIcon').value.trim() || '🧩',
+                description: document.getElementById('tmplDesc').value.trim() || ''
+            };
+            isCustomTemplateMode = true;
+
+            closeSaveTemplateModal();
+            initEditors('', '', '');
+
+            // Show "Save Template" button
+            document.getElementById('saveAsTemplateBtn').style.display = '';
+        }
+
+        // ── Save current editor content as a reusable custom template ──
+        function saveAsTemplate() {
+            if (!htmlEditor) return;
+
+            var payload = {
+                name: pendingCustomMeta.name,
+                icon: pendingCustomMeta.icon,
+                description: pendingCustomMeta.description,
+                html: htmlEditor.getValue(),
+                css: cssEditor.getValue(),
+                js: jsEditor.getValue()
+            };
+
+            fetch('/api/custom-templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.id) {
+                    alert('Template "' + pendingCustomMeta.name + '" đã được lưu! Bạn có thể sử dụng lại nó lần sau.');
+                    document.getElementById('saveAsTemplateBtn').style.display = 'none';
+                    isCustomTemplateMode = false;
+                } else {
+                    alert('Lỗi: ' + (data.error || 'Không thể lưu template.'));
+                }
+            })
+            .catch(function () {
+                alert('Lỗi kết nối, không thể lưu template.');
             });
         }
 

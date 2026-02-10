@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace BravoWeb.Models;
@@ -8,7 +8,7 @@ public class SitePage
     public int Id { get; set; }
 
     [Required, StringLength(100)]
-    public string Slug { get; set; } = null!; // e.g. "news", "about", "services"
+    public string Slug { get; set; } = null!;
 
     [Required, StringLength(200)]
     public string Title { get; set; } = null!;

@@ -204,6 +204,19 @@ using (var scope = app.Services.CreateScope())
                             Hệ thống ổn định, báo cáo chính xác, rất hài lòng.
                         </div>
                     </div>
+
+                    <div class="carousel-card">
+                        <div class="carousel-card-upper-section">
+                            <div class="carousel-card-upper-section-portrait"></div>
+                            <div class="carousel-card-upper-section-title">
+                                <div class="testimonial-carousel-name">Phạm Thị D</div>
+                                <div class="testimonial-carousel-title">Kế toán trưởng</div>
+                            </div>
+                        </div>
+                        <div class="carousel-card-lower-section">
+                            Phần mềm dễ sử dụng, tiết kiệm thời gian cho bộ phận kế toán.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -229,28 +242,30 @@ using (var scope = app.Services.CreateScope())
         let cards = Array.from(track.children);
         let cardWidth = 0;
         let gapBetween = 0;
+        let halfGap = 0;
         let currentTranslate = 0;
         let isAnimating = false;
 
         function recalcSizesOnly(){
             const viewport = window.innerWidth || document.documentElement.clientWidth || container.clientWidth;
-            const trackStyle = getComputedStyle(track);
-            const trackPadLeft = parseFloat(trackStyle.paddingLeft) || 0;
-            const trackPadRight = parseFloat(trackStyle.paddingRight) || 0;
-            const effectiveViewport = viewport - trackPadLeft - trackPadRight;
 
             const computed = getComputedStyle(cards[0]);
             const ml = parseFloat(computed.marginLeft) || 0;
             const mr = parseFloat(computed.marginRight) || 0;
             gapBetween = ml + mr;
-            const totalGap = (3 - 1) * gapBetween;
-            cardWidth = (effectiveViewport - totalGap) / 3;
+            halfGap = ml;
+
+            cardWidth = (viewport - 3 * gapBetween) / 3;
             cards.forEach(c => { c.style.flex = `0 0 ${cardWidth}px`; });
+        }
+
+        function restingOffset(){
+            return -(cardWidth / 2 + halfGap);
         }
 
         function updateSizes(){
             recalcSizesOnly();
-            currentTranslate = -cardWidth/2;
+            currentTranslate = restingOffset();
             setTranslate(currentTranslate, false);
         }
 
@@ -269,12 +284,11 @@ using (var scope = app.Services.CreateScope())
             setTranslate(target, true);
             const onEnd = () => {
                 track.removeEventListener('transitionend', onEnd);
-                const first = track.firstElementChild;
-                track.appendChild(first);
+                track.appendChild(track.firstElementChild);
                 cards = Array.from(track.children);
                 recalcSizesOnly();
                 void track.offsetWidth;
-                currentTranslate = -cardWidth/2;
+                currentTranslate = restingOffset();
                 setTranslate(currentTranslate, false);
                 isAnimating = false;
                 nextBtn.style.pointerEvents = '';
@@ -289,14 +303,13 @@ using (var scope = app.Services.CreateScope())
             nextBtn.style.pointerEvents = 'none';
             prevBtn.style.pointerEvents = 'none';
             const step = cardWidth + gapBetween;
-            const last = track.lastElementChild;
-            track.insertBefore(last, track.firstChild);
+            track.insertBefore(track.lastElementChild, track.firstChild);
             cards = Array.from(track.children);
             recalcSizesOnly();
-            currentTranslate = -(cardWidth/2) - step;
+            currentTranslate = restingOffset() - step;
             setTranslate(currentTranslate, false);
             void track.offsetWidth;
-            const target = -cardWidth/2;
+            const target = restingOffset();
             setTranslate(target, true);
             const onEnd = () => {
                 track.removeEventListener('transitionend', onEnd);

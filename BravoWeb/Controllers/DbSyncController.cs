@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +30,7 @@ public class DbSyncController : Controller
     }
 
     /// <summary>
-    /// Pull: PostgreSQL ? SQLite (copy remote data to local file DB)
+    /// Pull: PostgreSQL → SQLite (copy remote data to local file DB)
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -47,8 +47,10 @@ public class DbSyncController : Controller
             // Read everything from PostgreSQL
             var pages = await pgDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await pgDb.ContentFragments.AsNoTracking().ToListAsync();
+            var templates = await pgDb.CustomTemplates.AsNoTracking().ToListAsync();
 
             // Wipe SQLite
+            sqliteDb.CustomTemplates.RemoveRange(sqliteDb.CustomTemplates);
             sqliteDb.ContentFragments.RemoveRange(sqliteDb.ContentFragments);
             sqliteDb.SitePages.RemoveRange(sqliteDb.SitePages);
             await sqliteDb.SaveChangesAsync();
@@ -57,14 +59,19 @@ public class DbSyncController : Controller
             sqliteDb.SitePages.AddRange(pages);
             await sqliteDb.SaveChangesAsync();
 
-            // Detach pages so fragment FK doesn't cause tracking conflicts
             foreach (var entry in sqliteDb.ChangeTracker.Entries().ToList())
                 entry.State = EntityState.Detached;
 
             sqliteDb.ContentFragments.AddRange(fragments);
             await sqliteDb.SaveChangesAsync();
 
-            TempData["SyncMessage"] = $"Pull complete � {pages.Count} pages, {fragments.Count} fragments copied from PostgreSQL ? SQLite.";
+            foreach (var entry in sqliteDb.ChangeTracker.Entries().ToList())
+                entry.State = EntityState.Detached;
+
+            sqliteDb.CustomTemplates.AddRange(templates);
+            await sqliteDb.SaveChangesAsync();
+
+            TempData["SyncMessage"] = $"Pull complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from PostgreSQL → SQLite.";
             TempData["SyncSuccess"] = true;
         }
         catch (Exception ex)
@@ -77,7 +84,7 @@ public class DbSyncController : Controller
     }
 
     /// <summary>
-    /// Push: SQLite ? PostgreSQL (copy local changes to remote DB)
+    /// Push: SQLite → PostgreSQL (copy local changes to remote DB)
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -91,8 +98,10 @@ public class DbSyncController : Controller
             // Read everything from SQLite
             var pages = await sqliteDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await sqliteDb.ContentFragments.AsNoTracking().ToListAsync();
+            var templates = await sqliteDb.CustomTemplates.AsNoTracking().ToListAsync();
 
             // Wipe PostgreSQL
+            pgDb.CustomTemplates.RemoveRange(pgDb.CustomTemplates);
             pgDb.ContentFragments.RemoveRange(pgDb.ContentFragments);
             pgDb.SitePages.RemoveRange(pgDb.SitePages);
             await pgDb.SaveChangesAsync();
@@ -107,7 +116,13 @@ public class DbSyncController : Controller
             pgDb.ContentFragments.AddRange(fragments);
             await pgDb.SaveChangesAsync();
 
-            TempData["SyncMessage"] = $"Push complete � {pages.Count} pages, {fragments.Count} fragments copied from SQLite ? PostgreSQL.";
+            foreach (var entry in pgDb.ChangeTracker.Entries().ToList())
+                entry.State = EntityState.Detached;
+
+            pgDb.CustomTemplates.AddRange(templates);
+            await pgDb.SaveChangesAsync();
+
+            TempData["SyncMessage"] = $"Push complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from SQLite → PostgreSQL.";
             TempData["SyncSuccess"] = true;
         }
         catch (Exception ex)

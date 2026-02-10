@@ -88,14 +88,11 @@
 }
 
 /* Track & cards */
-/* Force track to occupy full viewport width and preserve box-sizing */
+/* Force track to be wide enough for all cards — no viewport clamp */
 .carousel-track {
     display: flex;
     align-items: center;
     will-change: transform;
-    min-width: 100vw;
-    width: 100vw;
-    box-sizing: border-box;
 }
 
 .carousel-card {
