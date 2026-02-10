@@ -1,0 +1,112 @@
+﻿/* ── Section container (full-bleed) ── */
+.general_news-section-container {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    background: #fff;
+}
+
+.general_news-section-container .general_news-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 40px 0;
+    padding-left: var(--site-side-margin, 20%);
+    padding-right: var(--site-side-margin, 20%);
+}
+
+/* ── "See all" button (shared style) ── */
+.see-all-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background-color: #f8ae49;
+    color: white;
+    border-radius: 10px;
+    transition: 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.see-all-button:hover {
+    background-color: #01a58c;
+}
+
+/* ── 3×2 card grid ── */
+.general_news-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 992px) {
+    .general_news-grid {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .general_news-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Individual card ── */
+.general_news-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.25s, transform 0.25s;
+}
+
+.general_news-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+    transform: translateY(-3px);
+}
+
+/* ── Card image ── */
+.general_news-card-image {
+    height: 160px;
+    background-color: #01a58c;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ── Card body ── */
+.general_news-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+}
+
+.general_news-card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #222;
+    /* Clamp to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.general_news-card-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+    /* Clamp to 3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

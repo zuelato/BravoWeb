@@ -1,43 +1,59 @@
-@model IEnumerable<BravoWeb.Models.SitePage>
+﻿@model IEnumerable<BravoWeb.Models.SitePage>
 @{
     ViewData["Title"] = "Site Pages";
 }
 
-<h1>Site Pages</h1>
+<div class="cms-page">
+    <h1>Site Pages</h1>
 
-<p>
-    <a asp-action="Create">Create New Page</a>
-</p>
+    <div class="cms-actions">
+        <a asp-action="Create" class="btn-cms btn-cms-primary">+ Create New Page</a>
+        <a asp-controller="DbSync" asp-action="Index" class="btn-cms btn-cms-secondary">Database Sync</a>
+    </div>
 
-<table>
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Slug (URL)</th>
-            <th>Published</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var sp in Model)
-        {
+    <table class="cms-table">
+        <thead>
             <tr>
-                <td>@sp.Title</td>
-                <td>/@sp.Slug</td>
-                <td>@(sp.IsPublished ? "Yes" : "No")</td>
-                <td>
-                    <a asp-controller="ContentFragments" asp-action="Index" asp-route-pageId="@sp.Id">Manage Fragments</a> |
-                    <a asp-action="Edit" asp-route-id="@sp.Id">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@sp.Id">Delete</a> |
-                    <a href="/@sp.Slug" target="_blank">View</a>
-                </td>
+                <th>Title</th>
+                <th>Slug (URL)</th>
+                <th class="col-status">Published</th>
+                <th class="col-actions">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var sp in Model)
+            {
+                <tr>
+                    <td><strong>@sp.Title</strong></td>
+                    <td><code>/@sp.Slug</code></td>
+                    <td>
+                        @if (sp.IsPublished)
+                        {
+                            <span class="badge-published badge-yes">Yes</span>
+                        }
+                        else
+                        {
+                            <span class="badge-published badge-no">No</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-controller="ContentFragments" asp-action="Index" asp-route-pageId="@sp.Id" class="cms-link">Fragments</a>
+                        <span class="action-sep">·</span>
+                        <a asp-action="Edit" asp-route-id="@sp.Id" class="cms-link">Edit</a>
+                        <span class="action-sep">·</span>
+                        <a asp-action="Delete" asp-route-id="@sp.Id" class="cms-link cms-link-danger">Delete</a>
+                        <span class="action-sep">·</span>
+                        <a href="/@sp.Slug" target="_blank" class="cms-link">View ↗</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<hr />
-<h3>Home Page</h3>
-<p>
-    <a asp-controller="ContentFragments" asp-action="Index">Manage Home Page Fragments</a>
-</p>
+    <hr class="cms-divider" />
+
+    <h3>Home Page</h3>
+    <div class="cms-actions">
+        <a asp-controller="ContentFragments" asp-action="Index" class="btn-cms btn-cms-secondary">Manage Home Page Fragments</a>
+    </div>
+</div>

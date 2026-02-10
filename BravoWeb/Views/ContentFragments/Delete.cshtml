@@ -4,18 +4,23 @@
     int? pageId = ViewBag.PageId as int?;
 }
 
-<h1>Delete Content Fragment</h1>
+<div class="cms-page">
+    <h1>Delete Content Fragment</h1>
 
-<div>
-    <h3>@Model.Name</h3>
-    <div>
-        @Html.Raw(Model.HtmlContent)
+    <div class="cms-confirm-card">
+        <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+
+        <div style="margin-top:12px; padding:16px; background:#f7f8fa; border-radius:6px; border:1px solid #eee; overflow-x:auto; max-height:200px; overflow-y:auto;">
+            @Html.Raw(Model.HtmlContent)
+        </div>
+
+        <form asp-action="Delete" method="post" class="cms-form" style="margin-top:16px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="form-actions">
+                <button type="submit" class="btn-cms btn-cms-danger">Delete</button>
+                <a asp-action="Index" asp-route-pageId="@pageId" class="btn-cms btn-cms-secondary">Cancel</a>
+            </div>
+        </form>
     </div>
 </div>
-
-<form asp-action="Delete" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <button type="submit">Delete</button>
-    <a asp-action="Index" asp-route-pageId="@pageId">Cancel</a>
-</form>

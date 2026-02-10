@@ -1,0 +1,269 @@
+/* ??????????????????????????????????????????????
+   CMS / Admin Pages – Shared Styles
+   Applied to SitePages & ContentFragments views
+   ?????????????????????????????????????????????? */
+
+/* ?? Page wrapper ?? */
+.cms-page {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    padding-left: 30%;
+    padding-right: 30%;
+    padding-top: 12px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+}
+
+/* ?? Page header ?? */
+.cms-page h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 6px;
+}
+
+.cms-page h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* ?? Top action bar ?? */
+.cms-page .cms-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+/* ?? Buttons & links ?? */
+.cms-page .btn-cms {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.cms-page .btn-cms-primary {
+    background-color: #00a88e;
+    color: #fff;
+}
+
+.cms-page .btn-cms-primary:hover {
+    background-color: #008e78;
+    color: #fff;
+}
+
+.cms-page .btn-cms-secondary {
+    background-color: #f0f0f0;
+    color: #444;
+}
+
+.cms-page .btn-cms-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.cms-page .btn-cms-danger {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.cms-page .btn-cms-danger:hover {
+    background-color: #c0392b;
+    color: #fff;
+}
+
+/* ?? Tables ?? */
+.cms-page table.cms-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.cms-page table.cms-table thead {
+    background: #f7f8fa;
+}
+
+.cms-page table.cms-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 2px solid #eee;
+    white-space: nowrap;
+}
+
+.cms-page table.cms-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.cms-page table.cms-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cms-page table.cms-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* Column sizing hints */
+.cms-page table.cms-table .col-drag    { width: 48px; text-align: center; }
+.cms-page table.cms-table .col-order   { width: 64px; }
+.cms-page table.cms-table .col-status  { width: 100px; }
+.cms-page table.cms-table .col-actions { width: 260px; white-space: nowrap; }
+
+/* ?? Action links inside tables ?? */
+.cms-page table.cms-table .cms-link {
+    color: #00a88e;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.15s;
+}
+
+.cms-page table.cms-table .cms-link:hover {
+    color: #008e78;
+    text-decoration: underline;
+}
+
+.cms-page table.cms-table .cms-link-danger {
+    color: #e74c3c;
+}
+
+.cms-page table.cms-table .cms-link-danger:hover {
+    color: #c0392b;
+}
+
+.cms-page table.cms-table .action-sep {
+    color: #ddd;
+    margin: 0 6px;
+}
+
+/* ?? Published badge ?? */
+.cms-page .badge-published {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.cms-page .badge-yes {
+    background: #e6f9f1;
+    color: #00a88e;
+}
+
+.cms-page .badge-no {
+    background: #fef2f0;
+    color: #e74c3c;
+}
+
+/* ?? Forms ?? */
+.cms-page .cms-form .form-group {
+    margin-bottom: 16px;
+}
+
+.cms-page .cms-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.cms-page .cms-form input[type="text"],
+.cms-page .cms-form input[type="number"],
+.cms-page .cms-form input[type="email"],
+.cms-page .cms-form select,
+.cms-page .cms-form textarea {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.cms-page .cms-form input:focus,
+.cms-page .cms-form select:focus,
+.cms-page .cms-form textarea:focus {
+    border-color: #00a88e;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,168,142,0.1);
+}
+
+.cms-page .cms-form .validation-error {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.cms-page .cms-form .form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cms-page .cms-form .form-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #00a88e;
+}
+
+.cms-page .cms-form .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+/* ?? Confirm/Delete card ?? */
+.cms-page .cms-confirm-card {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    max-width: 560px;
+}
+
+.cms-page .cms-confirm-card p {
+    margin-bottom: 12px;
+    color: #444;
+    line-height: 1.5;
+}
+
+/* ?? Status message ?? */
+.cms-page .cms-status {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* ?? Section divider ?? */
+.cms-page .cms-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 24px 0;
+}

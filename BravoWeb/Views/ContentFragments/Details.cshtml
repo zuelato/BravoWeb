@@ -4,16 +4,18 @@
     int? pageId = ViewBag.PageId as int?;
 }
 
-<h1>Content Fragment Details</h1>
+<div class="cms-page">
+    <h1>Content Fragment Details</h1>
 
-<div>
-    <h3>@Model.Name</h3>
-    <div>
-        @Html.Raw(Model.HtmlContent)
+    <div class="cms-confirm-card">
+        <h3>@Model.Name</h3>
+        <div style="margin-top:12px; padding:16px; background:#f7f8fa; border-radius:6px; border:1px solid #eee; overflow-x:auto;">
+            @Html.Raw(Model.HtmlContent)
+        </div>
+    </div>
+
+    <div class="cms-actions" style="margin-top:16px;">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-cms btn-cms-primary">Edit</a>
+        <a asp-action="Index" asp-route-pageId="@pageId" class="btn-cms btn-cms-secondary">? Back to List</a>
     </div>
 </div>
-
-<p>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index" asp-route-pageId="@pageId">Back to List</a>
-</p>

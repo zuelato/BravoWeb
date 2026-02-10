@@ -6,42 +6,45 @@
     string pageName = ViewBag.PageName ?? "Home Page";
 }
 
-<h1>Content Fragments - @pageName</h1>
+<div class="cms-page">
+    <h1>Content Fragments — @pageName</h1>
 
-<p>
-    <a asp-action="Create" asp-route-pageId="@pageId">Create New</a>
-    |
-    <a asp-controller="SitePages" asp-action="Index">Back to Pages</a>
-</p>
+    <div class="cms-actions">
+        <a asp-action="Create" asp-route-pageId="@pageId" class="btn-cms btn-cms-primary">+ Create New</a>
+        <a asp-controller="SitePages" asp-action="Index" class="btn-cms btn-cms-secondary">← Back to Pages</a>
+    </div>
 
-<table id="fragmentsTable">
-    <thead>
-        <tr>
-            <th style="width:40px;"></th>
-            <th>Order</th>
-            <th>Name</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody id="fragmentsBody">
-        @for (int i = 0; i < items.Count; i++)
-        {
-            var item = items[i];
-            <tr draggable="true" data-id="@item.Id" style="cursor:grab;">
-                <td style="text-align:center; font-size:18px;">☰</td>
-                <td class="row-order">@(i + 1)</td>
-                <td>@item.Name</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+    <table class="cms-table" id="fragmentsTable">
+        <thead>
+            <tr>
+                <th class="col-drag"></th>
+                <th class="col-order">Order</th>
+                <th>Name</th>
+                <th class="col-actions">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody id="fragmentsBody">
+            @for (int i = 0; i < items.Count; i++)
+            {
+                var item = items[i];
+                <tr draggable="true" data-id="@item.Id" style="cursor:grab;">
+                    <td class="col-drag" style="font-size:18px;color:#bbb;">☰</td>
+                    <td class="row-order">@(i + 1)</td>
+                    <td><strong>@item.Name</strong></td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="cms-link">Edit</a>
+                        <span class="action-sep">·</span>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="cms-link">Details</a>
+                        <span class="action-sep">·</span>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="cms-link cms-link-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<div id="saveStatus" style="margin-top:8px; color:green; display:none;">Order saved</div>
+    <div id="saveStatus" class="cms-status" style="display:none;">Order saved</div>
+</div>
 
 @section Scripts {
     <script>
@@ -75,11 +78,11 @@
                 const rect = targetRow.getBoundingClientRect();
                 const midY = rect.top + rect.height / 2;
                 if (e.clientY < midY) {
-                    targetRow.style.borderTop = '3px solid #007bff';
+                    targetRow.style.borderTop = '3px solid #00a88e';
                 } else {
                     targetRow.style.borderTop = '';
                     const next = targetRow.nextElementSibling;
-                    if (next) next.style.borderTop = '3px solid #007bff';
+                    if (next) next.style.borderTop = '3px solid #00a88e';
                 }
             });
 
@@ -132,10 +135,10 @@
                     const status = document.getElementById('saveStatus');
                     if (r.ok) {
                         status.textContent = 'Order saved';
-                        status.style.color = 'green';
+                        status.style.color = '#00a88e';
                     } else {
                         status.textContent = 'Failed to save order';
-                        status.style.color = 'red';
+                        status.style.color = '#e74c3c';
                     }
                     status.style.display = 'block';
                     setTimeout(() => status.style.display = 'none', 2000);
@@ -143,7 +146,7 @@
                 .catch(() => {
                     const status = document.getElementById('saveStatus');
                     status.textContent = 'Error saving order';
-                    status.style.color = 'red';
+                    status.style.color = '#e74c3c';
                     status.style.display = 'block';
                 });
             }

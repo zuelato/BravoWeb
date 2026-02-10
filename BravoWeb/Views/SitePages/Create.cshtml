@@ -3,26 +3,30 @@
     ViewData["Title"] = "Create Page";
 }
 
-<h1>Tạo Trang Mới</h1>
+<div class="cms-page">
+    <h1>Tạo Trang Mới</h1>
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-    <div>
-        <label asp-for="Title"></label>
-        <input asp-for="Title" />
-        <span asp-validation-for="Title"></span>
-    </div>
-    <div>
-        <label asp-for="Slug">URL</label>
-        <input asp-for="Slug" />
-        <span asp-validation-for="Slug"></span>
-    </div>
-    <div>
-        <label asp-for="IsPublished"></label>
-        <input asp-for="IsPublished" type="checkbox" checked="checked" />
-    </div>
-    <div>
-        <button type="submit">Tạo</button>
-        <a asp-action="Index">Huỷ</a>
-    </div>
-</form>
+    <form asp-action="Create" method="post" class="cms-form">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" />
+            <span asp-validation-for="Title" class="validation-error"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="Slug">URL Slug</label>
+            <input asp-for="Slug" />
+            <span asp-validation-for="Slug" class="validation-error"></span>
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                <input asp-for="IsPublished" type="checkbox" checked="checked" />
+                <label asp-for="IsPublished">Published</label>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-cms btn-cms-primary">Tạo</button>
+            <a asp-action="Index" class="btn-cms btn-cms-secondary">Huỷ</a>
+        </div>
+    </form>
+</div>

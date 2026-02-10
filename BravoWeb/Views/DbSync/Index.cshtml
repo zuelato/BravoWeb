@@ -1,0 +1,75 @@
+﻿@{
+    ViewData["Title"] = "Database Sync";
+    var message = TempData["SyncMessage"] as string;
+    var success = TempData["SyncSuccess"] as bool?;
+    var provider = ViewBag.ActiveProvider as string ?? "Unknown";
+}
+
+<div class="cms-page">
+    <h1>Database Sync</h1>
+    <p style="color:#666; margin-bottom:20px;">
+        Copy data between the company PostgreSQL database and your local SQLite file.
+        Currently running on: <strong style="color:#00a88e;">@provider</strong>
+    </p>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        var alertClass = success == true ? "background:#e6f9f1; color:#00a88e; border:1px solid #b2f0dc;"
+                                         : "background:#fef2f0; color:#e74c3c; border:1px solid #f5c6cb;";
+        <div style="padding:12px 16px; border-radius:6px; margin-bottom:20px; font-size:14px; @alertClass">
+            @message
+        </div>
+    }
+
+    <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <!-- Pull Card -->
+        <div style="flex:1; min-width:280px; background:#fff; border:1px solid #eee; border-radius:8px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+            <h3 style="margin:0 0 8px 0;">⬇️ Pull</h3>
+            <p style="color:#666; font-size:14px; line-height:1.5; margin-bottom:16px;">
+                <strong>PostgreSQL → SQLite</strong><br />
+                Copy all pages and fragments from the company database into your local SQLite file.
+                Use this before going home.
+            </p>
+            <form asp-action="Pull" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-cms btn-cms-primary"
+                        onclick="return confirm('This will overwrite your local SQLite database. Continue?');">
+                    Pull from PostgreSQL
+                </button>
+            </form>
+        </div>
+
+        <!-- Push Card -->
+        <div style="flex:1; min-width:280px; background:#fff; border:1px solid #eee; border-radius:8px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+            <h3 style="margin:0 0 8px 0;">⬆️ Push</h3>
+            <p style="color:#666; font-size:14px; line-height:1.5; margin-bottom:16px;">
+                <strong>SQLite → PostgreSQL</strong><br />
+                Push your local changes back to the company database.
+                Use this when you're back at work.
+            </p>
+            <form asp-action="Push" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-cms btn-cms-danger"
+                        onclick="return confirm('This will overwrite the company PostgreSQL database with your local data. Continue?');">
+                    Push to PostgreSQL
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <hr class="cms-divider" />
+
+    <div style="color:#999; font-size:13px;">
+        <p><strong>How it works:</strong></p>
+        <ul style="margin-top:4px; padding-left:20px; line-height:1.8;">
+            <li><strong>Pull</strong> wipes the local SQLite DB and replaces it with everything from PostgreSQL.</li>
+            <li><strong>Push</strong> wipes the PostgreSQL DB and replaces it with everything from SQLite.</li>
+            <li>Both operations copy <strong>SitePages</strong> and <strong>ContentFragments</strong> (including HTML, CSS, JS content).</li>
+            <li>IDs are preserved, so page ↔ fragment relationships stay intact.</li>
+        </ul>
+    </div>
+
+    <div class="cms-actions" style="margin-top:20px;">
+        <a asp-controller="SitePages" asp-action="Index" class="btn-cms btn-cms-secondary">← Back to Pages</a>
+    </div>
+</div>
