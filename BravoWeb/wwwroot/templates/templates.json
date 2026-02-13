@@ -41,7 +41,7 @@
         "id": "partners",
         "name": "Đối tác",
         "icon": "🤝",
-        "description": "Lưới logo đối tác 4x2.",
+        "description": "Lưới logo đối tác 6x2 với inner borders.",
         "files": {
             "html": "partners.html",
             "css": "partners.css"

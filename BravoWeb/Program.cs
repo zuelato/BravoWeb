@@ -55,213 +55,57 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
         }
 
-        // ── Seed banner template ──
-        var bannerTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Banner");
-        if (bannerTemplate == null)
+        // ── Helper: seed or update a template from files ──
+        CustomTemplate SeedOrUpdateTemplate(
+            string name, string icon, string description,
+            string htmlFile, string? cssFile, string? jsFile)
         {
-            bannerTemplate = new CustomTemplate
+            var htmlContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", htmlFile));
+            var cssContent = cssFile != null ? System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", cssFile)) : null;
+            var jsContent = jsFile != null ? System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", jsFile)) : null;
+
+            var template = db.CustomTemplates.FirstOrDefault(t => t.Name == name);
+            if (template == null)
             {
-                Name = "Banner",
-                Icon = "🖼️",
-                Description = "Banner toàn chiều rộng với tiêu đề, mô tả và nút CTA.",
-                HtmlContent = """
-<div class="banner-container" style="background-image: url('{{BG_IMAGE}}');">
-    <div class="banner-container-content">
-        <div class="banner-container-content-title">
-            <p>{{TITLE}}</p>
-        </div>
-        <div class="banner-container-content-subtitle">
-            <p>{{SUBTITLE}}</p>
-        </div>
-        <div class="banner-container-content-about-us">
-            <a class="cta-link" href="{{CTA_HREF}}">
-                <div class="banner-container-content-button-container">
-                    <p>{{CTA_TEXT}}</p>
-                </div>
-            </a>
-        </div>
-    </div>
-</div>
-""",
-                CssContent = """
-.banner-container {
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    width: 100vw;
-    min-height: 60vh;
-    z-index: 0;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-color: #003366;
-    overflow: hidden;
-}
-
-.banner-container a {
-    text-decoration: none;
-}
-
-.banner-container-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    z-index: 1;
-    width: clamp(300px, 60ch, 50%);
-    align-items: flex-start;
-    text-align: left;
-    margin-left: var(--site-side-margin, 20%);
-    padding: 6vh 0;
-}
-
-.banner-container-content p {
-    color: white;
-}
-
-.banner-container-content-title {
-    font-size: 28px;
-    font-weight: bold;
-    color: white;
-    margin-bottom: 20px;
-}
-
-.banner-container-content-subtitle {
-    font-size: 18px;
-    color: white;
-}
-
-.banner-container-content-about-us {
-    width: 40%;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8ae49;
-    color: white;
-    border-radius: 10px;
-    margin-top: 15px;
-}
-
-.banner-container-content-button-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
-
-.banner-container-content-about-us p {
-    font-size: 18px;
-}
-
-.banner-container-content-about-us:hover {
-    background-color: #00a88e;
-}
-"""
-            };
-            db.CustomTemplates.Add(bannerTemplate);
+                template = new CustomTemplate
+                {
+                    Name = name,
+                    Icon = icon,
+                    Description = description,
+                    HtmlContent = htmlContent,
+                    CssContent = cssContent,
+                    JsContent = jsContent
+                };
+                db.CustomTemplates.Add(template);
+            }
+            else
+            {
+                template.Icon = icon;
+                template.Description = description;
+                template.HtmlContent = htmlContent;
+                template.CssContent = cssContent;
+                template.JsContent = jsContent;
+            }
             db.SaveChanges();
+            return template;
         }
 
-        // ── Seed product news template ──
-        var productNewsTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Tin tức sản phẩm");
-        if (productNewsTemplate == null)
-        {
-            productNewsTemplate = new CustomTemplate
-            {
-                Name = "Tin tức sản phẩm",
-                Icon = "📰",
-                Description = "Khối tin tức dạng card 3 cột với tiêu đề, tag, và mô tả.",
-                HtmlContent = """
-<div class="product_news-section-container">
-    <div class="product_news-content">
-        <div class="upper-section-content">
-            <div class="section-name">
-                <div class="name">
-                    <p>{{SECTION_LABEL}}</p>
-                </div>
-                <div class="divider">
-                    <div class="divider-left"></div>
-                    <div class="divider-right"></div>
-                </div>
-            </div>
-            <div class="section-title">
-                <div class="title">
-                    <p>{{SECTION_TITLE}}</p>
-                </div>
-                <a href="{{SEE_ALL_URL}}" class="see-all-button">Xem tất cả</a>
-            </div>
-        </div>
-        <div class="product_news-lower-section-content">
-            <a href="{{CARD_1_URL}}" class="product_news-news-card">
-                <div class="image" style="background-image: url('{{CARD_1_IMAGE}}');"></div>
-                <div class="product_news-news-block">
-                    <div class="product_news-news-tag">{{CARD_1_TAG}}</div>
-                    <div class="product_news-news-title">{{CARD_1_TITLE}}</div>
-                    <div class="product_news-news-desc">{{CARD_1_DESC}}</div>
-                </div>
-            </a>
-            <a href="{{CARD_2_URL}}" class="product_news-news-card">
-                <div class="image" style="background-image: url('{{CARD_2_IMAGE}}');"></div>
-                <div class="product_news-news-block">
-                    <div class="product_news-news-tag">{{CARD_2_TAG}}</div>
-                    <div class="product_news-news-title">{{CARD_2_TITLE}}</div>
-                    <div class="product_news-news-desc">{{CARD_2_DESC}}</div>
-                </div>
-            </a>
-            <a href="{{CARD_3_URL}}" class="product_news-news-card">
-                <div class="image" style="background-image: url('{{CARD_3_IMAGE}}');"></div>
-                <div class="product_news-news-block">
-                    <div class="product_news-news-tag">{{CARD_3_TAG}}</div>
-                    <div class="product_news-news-title">{{CARD_3_TITLE}}</div>
-                    <div class="product_news-news-desc">{{CARD_3_DESC}}</div>
-                </div>
-            </a>
-        </div>
-    </div>
-</div>
-""",
-                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "product-news.css"))
-            };
-            db.CustomTemplates.Add(productNewsTemplate);
-            db.SaveChanges();
-        }
+        // ── Seed templates ──
+        var bannerTemplate = SeedOrUpdateTemplate(
+            "Banner", "🖼️", "Banner toàn chiều rộng với tiêu đề, mô tả và nút CTA.",
+            "banner.html", "banner.css", null);
 
-        // ── Seed testimonials template ──
-        var testimonialsTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Phản hồi khách hàng");
-        if (testimonialsTemplate == null)
-        {
-            testimonialsTemplate = new CustomTemplate
-            {
-                Name = "Phản hồi khách hàng",
-                Icon = "💬",
-                Description = "Carousel phản hồi với 4 thẻ khách hàng.",
-                HtmlContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.html")),
-                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.css")),
-                JsContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.js"))
-            };
-            db.CustomTemplates.Add(testimonialsTemplate);
-            db.SaveChanges();
-        }
+        var productNewsTemplate = SeedOrUpdateTemplate(
+            "Tin tức sản phẩm", "📰", "Khối tin tức dạng card 3 cột với tiêu đề, tag, và mô tả.",
+            "product-news.html", "product-news.css", null);
 
-        // ── Seed partners template ──
-        var partnersTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Đối tác");
-        if (partnersTemplate == null)
-        {
-            partnersTemplate = new CustomTemplate
-            {
-                Name = "Đối tác",
-                Icon = "🤝",
-                Description = "Lưới logo đối tác 4x2.",
-                HtmlContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "partners.html")),
-                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "partners.css"))
-            };
-            db.CustomTemplates.Add(partnersTemplate);
-            db.SaveChanges();
-        }
+        var testimonialsTemplate = SeedOrUpdateTemplate(
+            "Phản hồi khách hàng", "💬", "Carousel phản hồi với 4 thẻ khách hàng.",
+            "testimonials.html", "testimonials.css", "testimonials.js");
+
+        var partnersTemplate = SeedOrUpdateTemplate(
+            "Đối tác", "🤝", "Lưới logo đối tác 6x2 với inner borders.",
+            "partners.html", "partners.css", null);
 
         // ── Seed fragments ──
         if (!db.ContentFragments.Any(f => f.Name == "banner"))
@@ -308,7 +152,7 @@ using (var scope = app.Services.CreateScope())
                 HtmlContent = "<!-- rendered from template -->",
                 DisplayOrder = 3,
                 TemplateId = partnersTemplate.Id,
-                DataJson = """{"PARTNER_1":"Logo 1","PARTNER_2":"Logo 2","PARTNER_3":"Logo 3","PARTNER_4":"Logo 4","PARTNER_5":"Logo 5","PARTNER_6":"Logo 6","PARTNER_7":"Logo 7","PARTNER_8":"Logo 8"}"""
+                DataJson = """{"PARTNER_1_IMAGE":"","PARTNER_1_URL":"#","PARTNER_2_IMAGE":"","PARTNER_2_URL":"#","PARTNER_3_IMAGE":"","PARTNER_3_URL":"#","PARTNER_4_IMAGE":"","PARTNER_4_URL":"#","PARTNER_5_IMAGE":"","PARTNER_5_URL":"#","PARTNER_6_IMAGE":"","PARTNER_6_URL":"#","PARTNER_7_IMAGE":"","PARTNER_7_URL":"#","PARTNER_8_IMAGE":"","PARTNER_8_URL":"#","PARTNER_9_IMAGE":"","PARTNER_9_URL":"#","PARTNER_10_IMAGE":"","PARTNER_10_URL":"#","PARTNER_11_IMAGE":"","PARTNER_11_URL":"#","PARTNER_12_IMAGE":"","PARTNER_12_URL":"#"}"""
             });
         }
 

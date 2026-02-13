@@ -91,6 +91,32 @@
     .data-field-group input,
     .data-field-group textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
     .data-field-group textarea { min-height: 80px; resize: vertical; }
+
+    .data-field-fieldset {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #fafafa;
+    }
+    .data-field-fieldset-legend {
+        font-weight: 700;
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .data-field-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .data-field-row .data-field-group {
+        flex: 1;
+        min-width: 200px;
+        margin-bottom: 0;
+    }
 </style>
 
 @section Scripts {
@@ -111,31 +137,93 @@
                     if (!seen[key]) { seen[key] = true; keys.push(key); }
                 });
 
-                var container = document.getElementById('dataForm');
-                keys.forEach(function (key) {
-                    var value = dataJson[key] || '';
-                    var isLong = value.length > 80;
+                // Convert UPPER_SNAKE_CASE to human-readable label
+                function humanize(key) {
+                    return key
+                        .split('_')
+                        .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); })
+                        .join(' ');
+                }
+
+                // Create a single form field element
+                function createFieldElement(key, value) {
                     var group = document.createElement('div');
                     group.className = 'data-field-group';
 
                     var label = document.createElement('label');
-                    label.textContent = key;
+                    label.textContent = humanize(key);
                     group.appendChild(label);
 
                     var input;
+                    var suffix = key.split('_').pop();
+                    var isUrl = suffix === 'URL' || suffix === 'HREF';
+                    var isImage = suffix === 'IMAGE';
+                    var isLong = (suffix === 'DESC' || suffix === 'QUOTE' || suffix === 'SUBTITLE') || value.length > 80;
+
                     if (isLong) {
                         input = document.createElement('textarea');
+                        input.rows = 3;
                     } else {
                         input = document.createElement('input');
                         input.type = 'text';
                     }
+
+                    if (isImage) input.placeholder = 'https://example.com/image.jpg';
+                    else if (isUrl) input.placeholder = 'https://... hoặc #';
+
                     input.name = 'data_' + key;
                     input.value = value;
                     input.dataset.key = key;
                     input.className = 'data-input';
                     group.appendChild(input);
 
-                    container.appendChild(group);
+                    return group;
+                }
+
+                // Group keys by prefix (e.g., PARTNER_1_IMAGE + PARTNER_1_URL → group "PARTNER_1")
+                var groups = {};
+                var ungrouped = [];
+                keys.forEach(function (key) {
+                    var match = key.match(/^(.+?)_(URL|IMAGE|HREF|TITLE|DESC|NAME|TAG|QUOTE|LABEL|TEXT)$/);
+                    if (match) {
+                        var prefix = match[1];
+                        if (!groups[prefix]) groups[prefix] = [];
+                        groups[prefix].push(key);
+                    } else {
+                        ungrouped.push(key);
+                    }
+                });
+
+                var container = document.getElementById('dataForm');
+
+                // Render ungrouped fields first
+                ungrouped.forEach(function (key) {
+                    container.appendChild(createFieldElement(key, dataJson[key] || ''));
+                });
+
+                // Render grouped fields
+                var renderedKeys = {};
+                ungrouped.forEach(function (k) { renderedKeys[k] = true; });
+
+                Object.keys(groups).forEach(function (prefix) {
+                    var groupKeys = groups[prefix];
+                    if (groupKeys.length === 1 && !renderedKeys[groupKeys[0]]) {
+                        container.appendChild(createFieldElement(groupKeys[0], dataJson[groupKeys[0]] || ''));
+                        return;
+                    }
+                    var fieldset = document.createElement('div');
+                    fieldset.className = 'data-field-fieldset';
+                    var legend = document.createElement('div');
+                    legend.className = 'data-field-fieldset-legend';
+                    legend.textContent = humanize(prefix);
+                    fieldset.appendChild(legend);
+                    var row = document.createElement('div');
+                    row.className = 'data-field-row';
+                    groupKeys.forEach(function (key) {
+                        row.appendChild(createFieldElement(key, dataJson[key] || ''));
+                    });
+                    fieldset.appendChild(row);
+                    container.appendChild(fieldset);
                 });
             })();
 
