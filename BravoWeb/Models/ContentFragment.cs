@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BravoWeb.Models;
@@ -24,6 +24,22 @@ public class ContentFragment
 
     [ForeignKey("PageId")]
     public SitePage? Page { get; set; }
+
+    /// <summary>
+    /// FK to the template that provides the HTML/CSS/JS structure.
+    /// null = legacy fragment (uses its own HtmlContent directly).
+    /// </summary>
+    public int? TemplateId { get; set; }
+
+    [ForeignKey("TemplateId")]
+    public CustomTemplate? Template { get; set; }
+
+    /// <summary>
+    /// JSON key-value pairs that get merged into the template's placeholders.
+    /// null = legacy fragment (raw HTML, no template).
+    /// Example: { "TITLE": "Home", "BG_IMAGE": "home.jpg" }
+    /// </summary>
+    public string? DataJson { get; set; }
 
     [NotMapped]
     public string Content

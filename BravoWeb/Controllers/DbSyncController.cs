@@ -39,36 +39,29 @@ public class DbSyncController : Controller
         try
         {
             using var pgDb = BuildContext("PostgreSQL");
-            using var sqliteDb = BuildContext("SQLite");
 
-            // Ensure SQLite schema exists
-            sqliteDb.Database.EnsureCreated();
+            // Ensure PostgreSQL schema is up to date
+            pgDb.Database.Migrate();
 
             // Read everything from PostgreSQL
             var pages = await pgDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await pgDb.ContentFragments.AsNoTracking().ToListAsync();
             var templates = await pgDb.CustomTemplates.AsNoTracking().ToListAsync();
 
-            // Wipe SQLite
-            sqliteDb.CustomTemplates.RemoveRange(sqliteDb.CustomTemplates);
-            sqliteDb.ContentFragments.RemoveRange(sqliteDb.ContentFragments);
-            sqliteDb.SitePages.RemoveRange(sqliteDb.SitePages);
-            await sqliteDb.SaveChangesAsync();
+            // Recreate SQLite from scratch so schema always matches the current model
+            using var sqliteDb = BuildContext("SQLite");
+            sqliteDb.Database.EnsureDeleted();
+            sqliteDb.Database.EnsureCreated();
 
-            // Insert pages first (fragments have FK to pages)
+            // Insert — respect FK order: pages + templates first, then fragments
             sqliteDb.SitePages.AddRange(pages);
+            sqliteDb.CustomTemplates.AddRange(templates);
             await sqliteDb.SaveChangesAsync();
 
             foreach (var entry in sqliteDb.ChangeTracker.Entries().ToList())
                 entry.State = EntityState.Detached;
 
             sqliteDb.ContentFragments.AddRange(fragments);
-            await sqliteDb.SaveChangesAsync();
-
-            foreach (var entry in sqliteDb.ChangeTracker.Entries().ToList())
-                entry.State = EntityState.Detached;
-
-            sqliteDb.CustomTemplates.AddRange(templates);
             await sqliteDb.SaveChangesAsync();
 
             TempData["SyncMessage"] = $"Pull complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from PostgreSQL → SQLite.";
@@ -95,31 +88,30 @@ public class DbSyncController : Controller
             using var pgDb = BuildContext("PostgreSQL");
             using var sqliteDb = BuildContext("SQLite");
 
+            // Ensure PostgreSQL schema is up to date
+            pgDb.Database.Migrate();
+
             // Read everything from SQLite
             var pages = await sqliteDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await sqliteDb.ContentFragments.AsNoTracking().ToListAsync();
             var templates = await sqliteDb.CustomTemplates.AsNoTracking().ToListAsync();
 
-            // Wipe PostgreSQL
-            pgDb.CustomTemplates.RemoveRange(pgDb.CustomTemplates);
+            // Wipe PostgreSQL — respect FK order: fragments first (they reference pages + templates)
             pgDb.ContentFragments.RemoveRange(pgDb.ContentFragments);
+            await pgDb.SaveChangesAsync();
+            pgDb.CustomTemplates.RemoveRange(pgDb.CustomTemplates);
             pgDb.SitePages.RemoveRange(pgDb.SitePages);
             await pgDb.SaveChangesAsync();
 
-            // Insert pages first
+            // Insert — respect FK order: pages + templates first, then fragments
             pgDb.SitePages.AddRange(pages);
+            pgDb.CustomTemplates.AddRange(templates);
             await pgDb.SaveChangesAsync();
 
             foreach (var entry in pgDb.ChangeTracker.Entries().ToList())
                 entry.State = EntityState.Detached;
 
             pgDb.ContentFragments.AddRange(fragments);
-            await pgDb.SaveChangesAsync();
-
-            foreach (var entry in pgDb.ChangeTracker.Entries().ToList())
-                entry.State = EntityState.Detached;
-
-            pgDb.CustomTemplates.AddRange(templates);
             await pgDb.SaveChangesAsync();
 
             TempData["SyncMessage"] = $"Push complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from SQLite → PostgreSQL.";

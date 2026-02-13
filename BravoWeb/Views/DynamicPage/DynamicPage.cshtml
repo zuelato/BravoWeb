@@ -1,20 +1,60 @@
+﻿@using BravoWeb.Services
 @model BravoWeb.Models.SitePage
 @{
     ViewData["Title"] = Model.Title;
+    var renderer = (TemplateRenderer)ViewBag.Renderer;
+    var renderedTemplateJsIds = new HashSet<int>();
 }
 
 <main>
     <div class="site-body">
         @foreach (var fragment in Model.Fragments)
         {
-            if (!string.IsNullOrWhiteSpace(fragment.CssContent))
+            var scopeId = $"fragment-{fragment.Id}";
+            var scopeSelector = $"#{scopeId}";
+
+            var isTemplateBased = fragment.TemplateId.HasValue && fragment.Template != null;
+
+            var effectiveHtml = isTemplateBased
+                ? renderer.Render(fragment.Template!.HtmlContent ?? "", fragment.DataJson)
+                : fragment.HtmlContent;
+
+            var effectiveCss = isTemplateBased
+                ? fragment.Template!.CssContent
+                : fragment.CssContent;
+
+            var effectiveJs = isTemplateBased
+                ? fragment.Template!.JsContent
+                : fragment.JsContent;
+
+            // JS for template-based fragments is only emitted once per template
+            var shouldEmitJs = true;
+            if (isTemplateBased)
             {
-                @Html.Raw($"<style>{fragment.CssContent}</style>")
+                if (renderedTemplateJsIds.Contains(fragment.TemplateId!.Value))
+                {
+                    shouldEmitJs = false;
+                }
+                else
+                {
+                    renderedTemplateJsIds.Add(fragment.TemplateId!.Value);
+                }
             }
-            @Html.Raw(fragment.HtmlContent)
-            if (!string.IsNullOrWhiteSpace(fragment.JsContent))
+
+            var scopedCss = !string.IsNullOrWhiteSpace(effectiveCss)
+                ? CssScoper.Scope(effectiveCss, scopeSelector)
+                : null;
+
+            if (scopedCss != null)
             {
-                @Html.Raw($"<script>{fragment.JsContent}</script>")
+                @Html.Raw("<style>" + scopedCss + "</style>")
+            }
+            <div id="@scopeId">
+                @Html.Raw(effectiveHtml)
+            </div>
+            if (shouldEmitJs && !string.IsNullOrWhiteSpace(effectiveJs))
+            {
+                @Html.Raw("<script>" + effectiveJs + "</script>")
             }
         }
     </div>

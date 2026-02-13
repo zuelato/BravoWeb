@@ -7,6 +7,16 @@
     "files": {}
     },
     {
+        "id": "banner",
+        "name": "Banner",
+        "icon": "🖼️",
+        "description": "Banner toàn chiều rộng với tiêu đề, mô tả và nút CTA.",
+        "files": {
+            "html": "banner.html",
+            "css": "banner.css"
+        }
+    },
+    {
         "id": "product-news",
         "name": "Tin tức sản phẩm",
         "icon": "📰",
@@ -14,6 +24,27 @@
         "files": {
             "html": "product-news.html",
             "css": "product-news.css"
+        }
+    },
+    {
+        "id": "testimonials",
+        "name": "Phản hồi khách hàng",
+        "icon": "💬",
+        "description": "Carousel phản hồi với 4 thẻ khách hàng.",
+        "files": {
+            "html": "testimonials.html",
+            "css": "testimonials.css",
+            "js": "testimonials.js"
+        }
+    },
+    {
+        "id": "partners",
+        "name": "Đối tác",
+        "icon": "🤝",
+        "description": "Lưới logo đối tác 4x2.",
+        "files": {
+            "html": "partners.html",
+            "css": "partners.css"
         }
     },
     {

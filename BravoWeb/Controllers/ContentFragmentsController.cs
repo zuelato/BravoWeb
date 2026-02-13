@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
@@ -106,7 +106,7 @@ namespace BravoWeb.Controllers
         // POST: ContentFragments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,CssContent,JsContent,PageId")] ContentFragment contentFragment)
+        public async Task<IActionResult> Create([Bind("Id,Name,HtmlContent,CssContent,JsContent,PageId,TemplateId,DataJson")] ContentFragment contentFragment)
         {
             if (ModelState.IsValid)
             {
@@ -134,7 +134,9 @@ namespace BravoWeb.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var fragment = await _context.ContentFragments.FindAsync(id);
+            var fragment = await _context.ContentFragments
+                .Include(f => f.Template)
+                .FirstOrDefaultAsync(f => f.Id == id);
             if (fragment == null) return NotFound();
             ViewBag.PageId = fragment.PageId;
             return View(fragment);
@@ -143,7 +145,7 @@ namespace BravoWeb.Controllers
         // POST: ContentFragments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent,CssContent,JsContent")] ContentFragment contentFragment)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,HtmlContent,CssContent,JsContent,TemplateId,DataJson")] ContentFragment contentFragment)
         {
             if (id != contentFragment.Id) return NotFound();
             if (ModelState.IsValid)
@@ -156,6 +158,8 @@ namespace BravoWeb.Controllers
                     existing.HtmlContent = contentFragment.HtmlContent;
                     existing.CssContent = contentFragment.CssContent;
                     existing.JsContent = contentFragment.JsContent;
+                    existing.TemplateId = contentFragment.TemplateId;
+                    existing.DataJson = contentFragment.DataJson;
                     // Keep existing DisplayOrder and PageId
                     await _context.SaveChangesAsync();
                 }

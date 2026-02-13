@@ -3,12 +3,14 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using BravoWeb.Data;
 using BravoWeb.Models;
+using BravoWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSingleton<TemplateRenderer>();
 
 // ── Database provider selection ──
 // Reads "DatabaseProvider" from appsettings (overridden per environment).
@@ -42,7 +44,9 @@ using (var scope = app.Services.CreateScope())
     {
         if (useSqlite)
         {
-            // SQLite: create schema from model (no migrations needed for local dev)
+            // SQLite: drop and recreate so schema always matches the current model.
+            // SQLite is a local cache — data comes from PostgreSQL via Pull.
+            db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
         }
         else
@@ -51,313 +55,261 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
         }
 
-        // Seed initial fragments
-        if (!db.ContentFragments.Any(f => f.Name == "banner"))
+        // ── Seed banner template ──
+        var bannerTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Banner");
+        if (bannerTemplate == null)
         {
-            var banner = """
-<div class="banner-container">
+            bannerTemplate = new CustomTemplate
+            {
+                Name = "Banner",
+                Icon = "🖼️",
+                Description = "Banner toàn chiều rộng với tiêu đề, mô tả và nút CTA.",
+                HtmlContent = """
+<div class="banner-container" style="background-image: url('{{BG_IMAGE}}');">
     <div class="banner-container-content">
         <div class="banner-container-content-title">
-            <p>Giải pháp phần mềm quản trị doanh nghiệp BRAVO ERP</p>
+            <p>{{TITLE}}</p>
         </div>
         <div class="banner-container-content-subtitle">
-            <p>
-                Giải pháp phần mềm quản lý doanh nghiệp BRAVO là sự kết hợp hoàn hảo giữa sản phẩm "phần mềm" với những
-                "kinh nghiệm tư vấn và triển khai phần mềm" sẽ trở thành "Bí quyết quản trị doanh nghiệp" của các doanh nghiệp.
-            </p>
+            <p>{{SUBTITLE}}</p>
         </div>
         <div class="banner-container-content-about-us">
-            <a class="cta-link" href="#">
+            <a class="cta-link" href="{{CTA_HREF}}">
                 <div class="banner-container-content-button-container">
-                    <p>VỀ CHÚNG TÔI</p>
+                    <p>{{CTA_TEXT}}</p>
                 </div>
             </a>
         </div>
     </div>
 </div>
-""";
-            db.ContentFragments.Add(new ContentFragment { Name = "banner", HtmlContent = banner, DisplayOrder = 0 });
+""",
+                CssContent = """
+.banner-container {
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
+    min-height: 60vh;
+    z-index: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #003366;
+    overflow: hidden;
+}
+
+.banner-container a {
+    text-decoration: none;
+}
+
+.banner-container-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+    width: clamp(300px, 60ch, 50%);
+    align-items: flex-start;
+    text-align: left;
+    margin-left: var(--site-side-margin, 20%);
+    padding: 6vh 0;
+}
+
+.banner-container-content p {
+    color: white;
+}
+
+.banner-container-content-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.banner-container-content-subtitle {
+    font-size: 18px;
+    color: white;
+}
+
+.banner-container-content-about-us {
+    width: 40%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8ae49;
+    color: white;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.banner-container-content-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.banner-container-content-about-us p {
+    font-size: 18px;
+}
+
+.banner-container-content-about-us:hover {
+    background-color: #00a88e;
+}
+"""
+            };
+            db.CustomTemplates.Add(bannerTemplate);
+            db.SaveChanges();
         }
 
-        if (!db.ContentFragments.Any(f => f.Name == "product_news"))
+        // ── Seed product news template ──
+        var productNewsTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Tin tức sản phẩm");
+        if (productNewsTemplate == null)
         {
-            var productNews = """
+            productNewsTemplate = new CustomTemplate
+            {
+                Name = "Tin tức sản phẩm",
+                Icon = "📰",
+                Description = "Khối tin tức dạng card 3 cột với tiêu đề, tag, và mô tả.",
+                HtmlContent = """
 <div class="product_news-section-container">
     <div class="product_news-content">
         <div class="upper-section-content">
             <div class="section-name">
                 <div class="name">
-                    <p>PRODUCT NEWS</p>
+                    <p>{{SECTION_LABEL}}</p>
                 </div>
                 <div class="divider">
                     <div class="divider-left"></div>
                     <div class="divider-right"></div>
                 </div>
             </div>
-
             <div class="section-title">
                 <div class="title">
-                    <p>Tin tức về sản phẩm</p>
+                    <p>{{SECTION_TITLE}}</p>
                 </div>
-
-                <a href="/" class="see-all-button">
-                    Xem tất cả
-                </a>
+                <a href="{{SEE_ALL_URL}}" class="see-all-button">Xem tất cả</a>
             </div>
         </div>
-
         <div class="product_news-lower-section-content">
-            <a href="/" class="product_news-news-card">
-                <div class="image"></div>
+            <a href="{{CARD_1_URL}}" class="product_news-news-card">
+                <div class="image" style="background-image: url('{{CARD_1_IMAGE}}');"></div>
                 <div class="product_news-news-block">
-                    <div class="product_news-news-tag">&news-tag</div>
-                    <div class="product_news-news-title">&news-title</div>
-                    <div class="product_news-news-desc">&news-desc</div>
+                    <div class="product_news-news-tag">{{CARD_1_TAG}}</div>
+                    <div class="product_news-news-title">{{CARD_1_TITLE}}</div>
+                    <div class="product_news-news-desc">{{CARD_1_DESC}}</div>
                 </div>
             </a>
-
-            <a href="/" class="product_news-news-card">
-                <div class="image"></div>
+            <a href="{{CARD_2_URL}}" class="product_news-news-card">
+                <div class="image" style="background-image: url('{{CARD_2_IMAGE}}');"></div>
                 <div class="product_news-news-block">
-                    <div class="product_news-news-tag">&news-tag</div>
-                    <div class="product_news-news-title">&news-title</div>
-                    <div class="product_news-news-desc">&news-desc</div>
+                    <div class="product_news-news-tag">{{CARD_2_TAG}}</div>
+                    <div class="product_news-news-title">{{CARD_2_TITLE}}</div>
+                    <div class="product_news-news-desc">{{CARD_2_DESC}}</div>
                 </div>
             </a>
-
-            <a href="/" class="product_news-news-card">
-                <div class="image"></div>
+            <a href="{{CARD_3_URL}}" class="product_news-news-card">
+                <div class="image" style="background-image: url('{{CARD_3_IMAGE}}');"></div>
                 <div class="product_news-news-block">
-                    <div class="product_news-news-tag">&news-tag</div>
-                    <div class="product_news-news-title">&news-title</div>
-                    <div class="product_news-news-desc">&news-desc</div>
+                    <div class="product_news-news-tag">{{CARD_3_TAG}}</div>
+                    <div class="product_news-news-title">{{CARD_3_TITLE}}</div>
+                    <div class="product_news-news-desc">{{CARD_3_DESC}}</div>
                 </div>
             </a>
         </div>
     </div>
 </div>
-""";
-            db.ContentFragments.Add(new ContentFragment { Name = "product_news", HtmlContent = productNews, DisplayOrder = 1 });
+""",
+                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "product-news.css"))
+            };
+            db.CustomTemplates.Add(productNewsTemplate);
+            db.SaveChanges();
         }
 
-        // Seed testimonials fragment
+        // ── Seed testimonials template ──
+        var testimonialsTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Phản hồi khách hàng");
+        if (testimonialsTemplate == null)
+        {
+            testimonialsTemplate = new CustomTemplate
+            {
+                Name = "Phản hồi khách hàng",
+                Icon = "💬",
+                Description = "Carousel phản hồi với 4 thẻ khách hàng.",
+                HtmlContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.html")),
+                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.css")),
+                JsContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "testimonials.js"))
+            };
+            db.CustomTemplates.Add(testimonialsTemplate);
+            db.SaveChanges();
+        }
+
+        // ── Seed partners template ──
+        var partnersTemplate = db.CustomTemplates.FirstOrDefault(t => t.Name == "Đối tác");
+        if (partnersTemplate == null)
+        {
+            partnersTemplate = new CustomTemplate
+            {
+                Name = "Đối tác",
+                Icon = "🤝",
+                Description = "Lưới logo đối tác 4x2.",
+                HtmlContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "partners.html")),
+                CssContent = System.IO.File.ReadAllText(Path.Combine(app.Environment.WebRootPath, "templates", "partners.css"))
+            };
+            db.CustomTemplates.Add(partnersTemplate);
+            db.SaveChanges();
+        }
+
+        // ── Seed fragments ──
+        if (!db.ContentFragments.Any(f => f.Name == "banner"))
+        {
+            db.ContentFragments.Add(new ContentFragment
+            {
+                Name = "banner",
+                HtmlContent = "<!-- rendered from template -->",
+                DisplayOrder = 0,
+                TemplateId = bannerTemplate.Id,
+                DataJson = """{"TITLE":"Giải pháp phần mềm quản trị doanh nghiệp BRAVO ERP","SUBTITLE":"Giải pháp phần mềm quản lý doanh nghiệp BRAVO là sự kết hợp hoàn hảo giữa sản phẩm \"phần mềm\" với những \"kinh nghiệm tư vấn và triển khai phần mềm\" sẽ trở thành \"Bí quyết quản trị doanh nghiệp\" của các doanh nghiệp.","BG_IMAGE":"https://thumbs2.imgbox.com/c5/cf/nBfprcbk_t.jpg","CTA_TEXT":"VỀ CHÚNG TÔI","CTA_HREF":"#"}"""
+            });
+        }
+
+        if (!db.ContentFragments.Any(f => f.Name == "product_news"))
+        {
+            db.ContentFragments.Add(new ContentFragment
+            {
+                Name = "product_news",
+                HtmlContent = "<!-- rendered from template -->",
+                DisplayOrder = 1,
+                TemplateId = productNewsTemplate.Id,
+                DataJson = """{"SECTION_LABEL":"PRODUCT NEWS","SECTION_TITLE":"Tin tức về sản phẩm","SEE_ALL_URL":"/","CARD_1_URL":"/","CARD_1_IMAGE":"","CARD_1_TAG":"Tag 1","CARD_1_TITLE":"Tiêu đề 1","CARD_1_DESC":"Mô tả 1","CARD_2_URL":"/","CARD_2_IMAGE":"","CARD_2_TAG":"Tag 2","CARD_2_TITLE":"Tiêu đề 2","CARD_2_DESC":"Mô tả 2","CARD_3_URL":"/","CARD_3_IMAGE":"","CARD_3_TAG":"Tag 3","CARD_3_TITLE":"Tiêu đề 3","CARD_3_DESC":"Mô tả 3"}"""
+            });
+        }
+
         if (!db.ContentFragments.Any(f => f.Name == "testimonials"))
         {
-            var testimonials = """
-<div class="section-container">
-    <div class="content">
-        <div class="upper-section-content">
-            <div class="section-name">
-                <div class="name">
-                    <p>TESTIMONIALS</p>
-                </div>
-                <div class="divider">
-                    <div class="divider-left"></div>
-                    <div class="divider-right"></div>
-                </div>
-            </div>
-
-            <div class="section-title">
-                <div class="title">
-                    <p>Phản hồi từ khách hàng</p>
-                </div>
-            </div>
-        </div>
-        <div class="lower-section-content">
-            <div class="carousel-container" id="testimonials-carousel">
-                <div class="carousel-track">
-                    <div class="carousel-card">
-                        <div class="carousel-card-upper-section">
-                            <div class="carousel-card-upper-section-portrait"></div>
-                            <div class="carousel-card-upper-section-title">
-                                <div class="testimonial-carousel-name">Nguyễn Văn A</div>
-                                <div class="testimonial-carousel-title">Giám đốc</div>
-                            </div>
-                        </div>
-                        <div class="carousel-card-lower-section">
-                            Bravo đã giúp chúng tôi tối ưu quy trình và tăng trưởng hiệu quả.
-                        </div>
-                    </div>
-
-                    <div class="carousel-card">
-                        <div class="carousel-card-upper-section">
-                            <div class="carousel-card-upper-section-portrait"></div>
-                            <div class="carousel-card-upper-section-title">
-                                <div class="testimonial-carousel-name">Trần Thị B</div>
-                                <div class="testimonial-carousel-title">Trưởng phòng</div>
-                            </div>
-                        </div>
-                        <div class="carousel-card-lower-section">
-                            Dịch vụ chuyên nghiệp và đội ngũ tận tâm.
-                        </div>
-                    </div>
-
-                    <div class="carousel-card">
-                        <div class="carousel-card-upper-section">
-                            <div class="carousel-card-upper-section-portrait"></div>
-                            <div class="carousel-card-upper-section-title">
-                                <div class="testimonial-carousel-name">Lê Văn C</div>
-                                <div class="testimonial-carousel-title">Chủ doanh nghiệp</div>
-                            </div>
-                        </div>
-                        <div class="carousel-card-lower-section">
-                            Hệ thống ổn định, báo cáo chính xác, rất hài lòng.
-                        </div>
-                    </div>
-
-                    <div class="carousel-card">
-                        <div class="carousel-card-upper-section">
-                            <div class="carousel-card-upper-section-portrait"></div>
-                            <div class="carousel-card-upper-section-title">
-                                <div class="testimonial-carousel-name">Phạm Thị D</div>
-                                <div class="testimonial-carousel-title">Kế toán trưởng</div>
-                            </div>
-                        </div>
-                        <div class="carousel-card-lower-section">
-                            Phần mềm dễ sử dụng, tiết kiệm thời gian cho bộ phận kế toán.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="carousel-controller">
-                <div class="carousel-controller-prev-nav" id="carousel-prev">
-                    <p>&lt;</p>
-                </div>
-
-                <div class="carousel-controller-next-nav" id="carousel-next">
-                    <p>&gt;</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    (function(){
-        const container = document.getElementById('testimonials-carousel');
-        const track = container.querySelector('.carousel-track');
-        const prevBtn = document.getElementById('carousel-prev');
-        const nextBtn = document.getElementById('carousel-next');
-        let cards = Array.from(track.children);
-        let cardWidth = 0;
-        let gapBetween = 0;
-        let halfGap = 0;
-        let currentTranslate = 0;
-        let isAnimating = false;
-
-        function recalcSizesOnly(){
-            const viewport = window.innerWidth || document.documentElement.clientWidth || container.clientWidth;
-
-            const computed = getComputedStyle(cards[0]);
-            const ml = parseFloat(computed.marginLeft) || 0;
-            const mr = parseFloat(computed.marginRight) || 0;
-            gapBetween = ml + mr;
-            halfGap = ml;
-
-            cardWidth = (viewport - 3 * gapBetween) / 3;
-            cards.forEach(c => { c.style.flex = `0 0 ${cardWidth}px`; });
+            db.ContentFragments.Add(new ContentFragment
+            {
+                Name = "testimonials",
+                HtmlContent = "<!-- rendered from template -->",
+                DisplayOrder = 2,
+                TemplateId = testimonialsTemplate.Id,
+                DataJson = """{"SECTION_LABEL":"TESTIMONIALS","SECTION_TITLE":"Phản hồi từ khách hàng","CARD_1_NAME":"Nguyễn Văn A","CARD_1_TITLE":"Giám đốc","CARD_1_QUOTE":"Bravo đã giúp chúng tôi tối ưu quy trình và tăng trưởng hiệu quả.","CARD_2_NAME":"Trần Thị B","CARD_2_TITLE":"Trưởng phòng","CARD_2_QUOTE":"Dịch vụ chuyên nghiệp và đội ngũ tận tâm.","CARD_3_NAME":"Lê Văn C","CARD_3_TITLE":"Chủ doanh nghiệp","CARD_3_QUOTE":"Hệ thống ổn định, báo cáo chính xác, rất hài lòng.","CARD_4_NAME":"Phạm Thị D","CARD_4_TITLE":"Kế toán trưởng","CARD_4_QUOTE":"Phần mềm dễ sử dụng, tiết kiệm thời gian cho bộ phận kế toán."}"""
+            });
         }
 
-        function restingOffset(){
-            return -(cardWidth / 2 + halfGap);
-        }
-
-        function updateSizes(){
-            recalcSizesOnly();
-            currentTranslate = restingOffset();
-            setTranslate(currentTranslate, false);
-        }
-
-        function setTranslate(x, animate=true){
-            track.style.transition = animate ? 'transform 0.45s ease' : 'none';
-            track.style.transform = `translate3d(${x}px,0,0)`;
-        }
-
-        function moveNext(){
-            if(isAnimating) return;
-            isAnimating = true;
-            nextBtn.style.pointerEvents = 'none';
-            prevBtn.style.pointerEvents = 'none';
-            const step = cardWidth + gapBetween;
-            const target = currentTranslate - step;
-            setTranslate(target, true);
-            const onEnd = () => {
-                track.removeEventListener('transitionend', onEnd);
-                track.appendChild(track.firstElementChild);
-                cards = Array.from(track.children);
-                recalcSizesOnly();
-                void track.offsetWidth;
-                currentTranslate = restingOffset();
-                setTranslate(currentTranslate, false);
-                isAnimating = false;
-                nextBtn.style.pointerEvents = '';
-                prevBtn.style.pointerEvents = '';
-            };
-            track.addEventListener('transitionend', onEnd);
-        }
-
-        function movePrev(){
-            if(isAnimating) return;
-            isAnimating = true;
-            nextBtn.style.pointerEvents = 'none';
-            prevBtn.style.pointerEvents = 'none';
-            const step = cardWidth + gapBetween;
-            track.insertBefore(track.lastElementChild, track.firstChild);
-            cards = Array.from(track.children);
-            recalcSizesOnly();
-            currentTranslate = restingOffset() - step;
-            setTranslate(currentTranslate, false);
-            void track.offsetWidth;
-            const target = restingOffset();
-            setTranslate(target, true);
-            const onEnd = () => {
-                track.removeEventListener('transitionend', onEnd);
-                currentTranslate = target;
-                cards = Array.from(track.children);
-                isAnimating = false;
-                nextBtn.style.pointerEvents = '';
-                prevBtn.style.pointerEvents = '';
-            };
-            track.addEventListener('transitionend', onEnd);
-        }
-
-        nextBtn.addEventListener('click', moveNext);
-        prevBtn.addEventListener('click', movePrev);
-        window.addEventListener('resize', updateSizes);
-        updateSizes();
-    })();
-</script>
-""";
-
-            db.ContentFragments.Add(new ContentFragment { Name = "testimonials", HtmlContent = testimonials, DisplayOrder = 2 });
-        }
-
-        // Seed partners fragment
         if (!db.ContentFragments.Any(f => f.Name == "partners"))
         {
-            var partners = """
-<div class="partners-section">
-    <div class="content">
-        <div class="partners-viewport">
-            <div class="partners-track">
-                <div class="partner-grid">
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                    <div class="partner-cell">&client-logo</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-""";
-
-            db.ContentFragments.Add(new ContentFragment { Name = "partners", HtmlContent = partners, DisplayOrder = 3 });
+            db.ContentFragments.Add(new ContentFragment
+            {
+                Name = "partners",
+                HtmlContent = "<!-- rendered from template -->",
+                DisplayOrder = 3,
+                TemplateId = partnersTemplate.Id,
+                DataJson = """{"PARTNER_1":"Logo 1","PARTNER_2":"Logo 2","PARTNER_3":"Logo 3","PARTNER_4":"Logo 4","PARTNER_5":"Logo 5","PARTNER_6":"Logo 6","PARTNER_7":"Logo 7","PARTNER_8":"Logo 8"}"""
+            });
         }
 
         db.SaveChanges();

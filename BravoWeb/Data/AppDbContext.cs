@@ -38,6 +38,11 @@ public partial class AppDbContext : DbContext
                 .WithMany(p => p.Fragments)
                 .HasForeignKey(f => f.PageId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(f => f.Template)
+                .WithMany(t => t.Fragments)
+                .HasForeignKey(f => f.TemplateId)
+                .OnDelete(DeleteBehavior.SetNull); // deleting a template doesn't delete fragments
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -16,40 +16,10 @@
             <!-- Built-in cards injected dynamically from templates.json -->
             <!-- Custom cards injected from /api/custom-templates -->
             <!-- "Create Your Own" card (always last) -->
-            <div class="template-card create-own-card" onclick="openSaveTemplateModal()">
-                <div class="template-icon">✨</div>
+            <div class="template-card create-own-card" onclick="startCustomTemplate()">
+                <div class="template-icon">+</div>
                 <h5>Tạo mẫu riêng</h5>
                 <p>Tạo template tùy chỉnh để sử dụng lại sau.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Save-as-Template Modal -->
-    <div id="saveTemplateModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; display:none; align-items:center; justify-content:center;">
-        <div style="background:#fff; border-radius:10px; padding:28px; width:420px; max-width:90vw; box-shadow:0 12px 40px rgba(0,0,0,0.2);">
-            <h4 style="margin:0 0 16px 0;">Lưu Template Mới</h4>
-            <div class="cms-form">
-                <div class="form-group">
-                    <label>Tên template *</label>
-                    <input type="text" id="tmplName" placeholder="VD: Hero Banner, Contact Form..." />
-                </div>
-                <div class="form-group">
-                    <label>Icon (emoji)</label>
-                    <input type="text" id="tmplIcon" value="🧩" style="width:60px;" />
-                </div>
-                <div class="form-group">
-                    <label>Mô tả ngắn</label>
-                    <input type="text" id="tmplDesc" placeholder="Mô tả ngắn về template này" />
-                </div>
-
-                <p style="color:#666; font-size:13px; margin-bottom:12px;">
-                    Bạn sẽ chỉnh sửa nội dung HTML/CSS/JS trong editor. Sau khi bấm <strong>Lưu Template</strong>, mẫu sẽ được lưu lại để dùng cho lần sau.
-                </p>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cms btn-cms-primary" onclick="startCustomTemplate()">Tiếp tục</button>
-                    <button type="button" class="btn-cms btn-cms-secondary" onclick="closeSaveTemplateModal()">Huỷ</button>
-                </div>
             </div>
         </div>
     </div>
@@ -59,14 +29,51 @@
         <form asp-action="Create" method="post" onsubmit="return syncEditors()" class="cms-form">
             @Html.AntiForgeryToken()
             <input type="hidden" name="PageId" value="@(pageId?.ToString() ?? "")" />
+            <input type="hidden" id="templateIdField" name="TemplateId" value="" />
+            <input type="hidden" id="dataJsonField" name="DataJson" value="" />
+
+            <!-- Custom template metadata (only visible in custom template mode) -->
+            <div id="customTemplateMeta" style="display:none; background:#f8f5ff; border:1px solid #e0d4f5; border-radius:8px; padding:16px; margin-bottom:16px;">
+                <h5 style="margin:0 0 12px 0; color:#7c3aed;">Thông tin Template</h5>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+                    <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
+                        <label>Tên template *</label>
+                        <input type="text" id="tmplName" placeholder="VD: Banner, Contact Form..." />
+                    </div>
+                    <div class="form-group" style="width:80px; margin-bottom:0;">
+                        <label>Icon</label>
+                        <input type="text" id="tmplIcon" value="" style="width:60px;" />
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:200px; margin-bottom:0;">
+                        <label>Mô tả ngắn</label>
+                        <input type="text" id="tmplDesc" placeholder="Mô tả ngắn về template này" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Template info banner (visible when using a template with placeholders) -->
+            <div id="templateInfoBanner" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px; margin-bottom:16px;">
+                <h5 style="margin:0 0 4px 0; color:#16a34a;">📐 Template: <span id="templateInfoName"></span></h5>
+                <p style="color:#666; font-size:13px; margin:0;">Điền dữ liệu bên dưới. Cấu trúc HTML/CSS/JS được quản lý bởi template.</p>
+            </div>
+
             <div class="form-group">
                 <label asp-for="Name"></label>
                 <input asp-for="Name" />
                 <span asp-validation-for="Name" class="validation-error"></span>
             </div>
 
-            <div style="margin-top:12px;">
-                <!-- Bootstrap Nav Tabs -->
+            <!-- Data form for template mode (hidden by default) -->
+            <div id="dataFormSection" style="display:none; margin-top:12px;">
+                <div id="dataForm"></div>
+                <details style="margin-top:16px;">
+                    <summary style="cursor:pointer; color:#666; font-size:13px;">Xem HTML template (chỉ đọc)</summary>
+                    <pre id="templatePreview" style="background:#f5f5f5; padding:12px; border-radius:6px; font-size:12px; max-height:300px; overflow:auto; margin-top:8px;"></pre>
+                </details>
+            </div>
+
+            <!-- Raw editor for raw/blank mode (hidden by default) -->
+            <div id="rawEditorSection" style="display:none; margin-top:12px;">
                 <ul class="nav nav-tabs" id="editorTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#htmlPane"
@@ -82,7 +89,6 @@
                     </li>
                 </ul>
 
-                <!-- Tab Panes -->
                 <div class="tab-content" id="editorTabContent">
                     <div class="tab-pane fade show active" id="htmlPane" role="tabpanel" aria-labelledby="html-tab">
                         <textarea asp-for="HtmlContent" id="htmlContent" style="display:none;"></textarea>
@@ -101,7 +107,6 @@
 
             <div class="form-actions">
                 <button id="saveBtn" type="submit" class="btn-cms btn-cms-primary">Create</button>
-                <!-- Save-as-template button (only visible when creating a custom template) -->
                 <button id="saveAsTemplateBtn" type="button" class="btn-cms btn-cms-secondary" style="display:none;"
                         onclick="saveAsTemplate()">
                     💾 Lưu Template
@@ -141,14 +146,12 @@
         font-size: 13px;
         color: #888;
     }
-    /* "Create your own" card — dashed border */
     .create-own-card {
         border-style: dashed;
         border-color: #00a88e;
     }
     .create-own-card .template-icon { color: #00a88e; }
     .create-own-card h5 { color: #00a88e; }
-    /* Custom template cards — subtle accent */
     .custom-template-card {
         border-color: #c5a3ff;
     }
@@ -156,7 +159,6 @@
         border-color: #9b6dff !important;
         box-shadow: 0 4px 12px rgba(155,109,255,0.15);
     }
-    /* Delete badge on custom cards */
     .custom-template-card .delete-tmpl {
         position: absolute;
         top: 6px;
@@ -174,6 +176,12 @@
         transition: opacity 0.15s;
     }
     .custom-template-card:hover .delete-tmpl { opacity: 1; }
+
+    .data-field-group { margin-bottom: 14px; }
+    .data-field-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #333; }
+    .data-field-group input,
+    .data-field-group textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    .data-field-group textarea { min-height: 80px; resize: vertical; }
 </style>
 
 @section Scripts {
@@ -183,14 +191,82 @@
         var htmlEditor, cssEditor, jsEditor;
         var templateManifest = [];
         var isCustomTemplateMode = false;
-        var pendingCustomMeta = {};
+        var isTemplateDataMode = false; // true = data form, false = raw editors
+        var activeTemplateHtml = '';
+
+        // ── Extract {{KEY}} placeholders from template HTML ──
+        function extractPlaceholders(html) {
+            var matches = html.match(/\{\{([A-Z0-9_]+)\}\}/g) || [];
+            var keys = [], seen = {};
+            matches.forEach(function (m) {
+                var key = m.replace(/[{}]/g, '');
+                if (!seen[key]) { seen[key] = true; keys.push(key); }
+            });
+            return keys;
+        }
+
+        // ── Build the data form from placeholder keys ──
+        function buildDataForm(keys) {
+            var container = document.getElementById('dataForm');
+            container.innerHTML = '';
+            keys.forEach(function (key) {
+                var group = document.createElement('div');
+                group.className = 'data-field-group';
+
+                var label = document.createElement('label');
+                label.textContent = key;
+                group.appendChild(label);
+
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.name = 'data_' + key;
+                input.dataset.key = key;
+                input.className = 'data-input';
+                input.placeholder = '{{' + key + '}}';
+                group.appendChild(input);
+
+                container.appendChild(group);
+            });
+        }
+
+        // ── Show template data mode ──
+        function showTemplateDataMode(templateName, templateHtml, templateId) {
+            isTemplateDataMode = true;
+            activeTemplateHtml = templateHtml;
+
+            document.getElementById('templatePicker').style.display = 'none';
+            document.getElementById('editorSection').style.display = 'block';
+            document.getElementById('rawEditorSection').style.display = 'none';
+            document.getElementById('dataFormSection').style.display = 'block';
+            document.getElementById('templateInfoBanner').style.display = 'block';
+            document.getElementById('templateInfoName').textContent = templateName;
+            document.getElementById('templatePreview').textContent = templateHtml;
+            document.getElementById('templateIdField').value = templateId;
+
+            var keys = extractPlaceholders(templateHtml);
+            buildDataForm(keys);
+        }
+
+        // ── Show raw editor mode ──
+        function showRawEditorMode(initialHtml, initialCss, initialJs) {
+            isTemplateDataMode = false;
+            activeTemplateHtml = '';
+
+            document.getElementById('templatePicker').style.display = 'none';
+            document.getElementById('editorSection').style.display = 'block';
+            document.getElementById('rawEditorSection').style.display = 'block';
+            document.getElementById('dataFormSection').style.display = 'none';
+            document.getElementById('templateInfoBanner').style.display = 'none';
+            document.getElementById('templateIdField').value = '';
+
+            initEditors(initialHtml, initialCss, initialJs);
+        }
 
         // ── Load built-in templates from manifest ──
         (function () {
             var container = document.getElementById('templateCards');
             var createOwnCard = container.querySelector('.create-own-card');
 
-            // 1) Load built-in templates
             fetch('/templates/templates.json')
                 .then(function (r) { return r.json(); })
                 .then(function (templates) {
@@ -206,7 +282,6 @@
                         container.insertBefore(card, createOwnCard);
                     });
 
-                    // 2) Then load custom templates
                     return fetch('/api/custom-templates');
                 })
                 .then(function (r) { return r.json(); })
@@ -217,7 +292,7 @@
                         card.style.position = 'relative';
                         card.onclick = function (e) {
                             if (e.target.classList.contains('delete-tmpl')) return;
-                            selectCustomTemplate(ct.id);
+                            selectCustomTemplate(ct.id, ct.name);
                         };
                         var numericId = ct.id.replace('custom-', '');
                         card.innerHTML =
@@ -238,10 +313,11 @@
                 .catch(function () { return ''; });
         }
 
-        // ── Select a built-in template ──
+        // ── Select a built-in template (always raw mode — file-based, no DB template ID) ──
         function selectTemplate(templateId) {
             isCustomTemplateMode = false;
             document.getElementById('saveAsTemplateBtn').style.display = 'none';
+            document.getElementById('customTemplateMeta').style.display = 'none';
 
             var tmpl = templateManifest.find(function (t) { return t.id === templateId; });
             var files = (tmpl && tmpl.files) || {};
@@ -251,20 +327,28 @@
                 fetchTemplateFile(files.css),
                 fetchTemplateFile(files.js)
             ]).then(function (results) {
-                initEditors(results[0], results[1], results[2]);
+                showRawEditorMode(results[0], results[1], results[2]);
             });
         }
 
-        // ── Select a custom template ──
-        function selectCustomTemplate(compositeId) {
+        // ── Select a custom template — if it has placeholders, show data form ──
+        function selectCustomTemplate(compositeId, templateName) {
             isCustomTemplateMode = false;
             document.getElementById('saveAsTemplateBtn').style.display = 'none';
+            document.getElementById('customTemplateMeta').style.display = 'none';
 
             var numericId = compositeId.replace('custom-', '');
             fetch('/api/custom-templates/' + numericId)
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    initEditors(data.html, data.css, data.js);
+                    var placeholders = extractPlaceholders(data.html || '');
+                    if (placeholders.length > 0) {
+                        // Template has placeholders — use data form mode
+                        showTemplateDataMode(templateName || data.name, data.html, data.id);
+                    } else {
+                        // No placeholders — use raw editor mode, pre-filled
+                        showRawEditorMode(data.html, data.css, data.js);
+                    }
                 });
         }
 
@@ -277,42 +361,25 @@
                 });
         }
 
-        // ── "Create Your Own" flow ──
-        function openSaveTemplateModal() {
-            var modal = document.getElementById('saveTemplateModal');
-            modal.style.display = 'flex';
-        }
-
-        function closeSaveTemplateModal() {
-            document.getElementById('saveTemplateModal').style.display = 'none';
-        }
-
+        // ── "Create Your Own" — go directly to editor with metadata fields ──
         function startCustomTemplate() {
-            var name = document.getElementById('tmplName').value.trim();
-            if (!name) { alert('Vui lòng nhập tên template.'); return; }
-
-            pendingCustomMeta = {
-                name: name,
-                icon: document.getElementById('tmplIcon').value.trim() || '🧩',
-                description: document.getElementById('tmplDesc').value.trim() || ''
-            };
             isCustomTemplateMode = true;
-
-            closeSaveTemplateModal();
-            initEditors('', '', '');
-
-            // Show "Save Template" button
+            document.getElementById('customTemplateMeta').style.display = 'block';
             document.getElementById('saveAsTemplateBtn').style.display = '';
+            showRawEditorMode('', '', '');
         }
 
         // ── Save current editor content as a reusable custom template ──
         function saveAsTemplate() {
             if (!htmlEditor) return;
 
+            var name = document.getElementById('tmplName').value.trim();
+            if (!name) { alert('Vui lòng nhập tên template.'); return; }
+
             var payload = {
-                name: pendingCustomMeta.name,
-                icon: pendingCustomMeta.icon,
-                description: pendingCustomMeta.description,
+                name: name,
+                icon: document.getElementById('tmplIcon').value.trim() || '🧩',
+                description: document.getElementById('tmplDesc').value.trim() || '',
                 html: htmlEditor.getValue(),
                 css: cssEditor.getValue(),
                 js: jsEditor.getValue()
@@ -326,7 +393,7 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.id) {
-                    alert('Template "' + pendingCustomMeta.name + '" đã được lưu! Bạn có thể sử dụng lại nó lần sau.');
+                    alert('Template "' + name + '" đã được lưu!');
                     document.getElementById('saveAsTemplateBtn').style.display = 'none';
                     isCustomTemplateMode = false;
                 } else {
@@ -340,8 +407,6 @@
 
         // ── Initialise Monaco editors with given content ──
         function initEditors(initialHtml, initialCss, initialJs) {
-            document.getElementById('templatePicker').style.display = 'none';
-            document.getElementById('editorSection').style.display = 'block';
             document.getElementById('saveBtn').disabled = true;
 
             require(['vs/editor/editor.main'], function () {
@@ -376,10 +441,23 @@
         }
 
         function syncEditors() {
-            if (htmlEditor) document.getElementById('htmlContent').value = htmlEditor.getValue();
-            if (cssEditor) document.getElementById('cssContent').value = cssEditor.getValue();
-            if (jsEditor) document.getElementById('jsContent').value = jsEditor.getValue();
-            return true;
+            if (isTemplateDataMode) {
+                // Template mode: collect data inputs into DataJson
+                var data = {};
+                document.querySelectorAll('.data-input').forEach(function (el) {
+                    data[el.dataset.key] = el.value;
+                });
+                document.getElementById('dataJsonField').value = JSON.stringify(data);
+                // Set a placeholder for the required HtmlContent field
+                document.getElementById('htmlContent').value = '<!-- rendered from template -->';
+                return true;
+            } else {
+                // Raw mode: sync Monaco editors
+                if (htmlEditor) document.getElementById('htmlContent').value = htmlEditor.getValue();
+                if (cssEditor) document.getElementById('cssContent').value = cssEditor.getValue();
+                if (jsEditor) document.getElementById('jsContent').value = jsEditor.getValue();
+                return true;
+            }
         }
     </script>
 }
