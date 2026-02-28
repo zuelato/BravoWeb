@@ -2,10 +2,10 @@
 
 namespace BravoWeb.Services;
 
-// scopes css rules to a container → prefixes selectors with e.g. "#fragment-42"
-public static partial class CssScopers
+// scopes css rules to a container -> prefixes selectors with e.g. "#fragment-42"
+public static partial class CssScoper
 {
-    // css + scope selector → scoped css
+    // css + scope selector -> scoped css
     public static string Scope(string css, string scopeSelector)
     {
         if (string.IsNullOrWhiteSpace(css) || string.IsNullOrWhiteSpace(scopeSelector))
@@ -33,7 +33,7 @@ public static partial class CssScopers
                 continue;
             }
 
-            // at-rules → recurse into block
+            // at-rules -> recurse into block
             if (css[i] == '@')
             {
                 int braceStart = css.IndexOf('{', i);
@@ -41,7 +41,7 @@ public static partial class CssScopers
 
                 string atRule = css[i..braceStart].Trim();
 
-                // @keyframes / @font-face → pass through
+                // @keyframes / @font-face -> pass through
                 if (atRule.StartsWith("@keyframes", StringComparison.OrdinalIgnoreCase) ||
                     atRule.StartsWith("@font-face", StringComparison.OrdinalIgnoreCase))
                 {
@@ -51,7 +51,7 @@ public static partial class CssScopers
                     continue;
                 }
 
-                // @media, @supports etc → recurse
+                // @media, @supports etc -> recurse
                 int innerEnd = FindClosingBrace(css, braceStart);
                 string innerCss = css[(braceStart + 1)..innerEnd];
                 result.Append(atRule);
@@ -62,7 +62,7 @@ public static partial class CssScopers
                 continue;
             }
 
-            // normal rule → scope selectors
+            // normal rule -> scope selectors
             int ruleBodyStart = css.IndexOf('{', i);
             if (ruleBodyStart == -1) { result.Append(css[i..]); break; }
 
@@ -78,7 +78,7 @@ public static partial class CssScopers
 
                 if (s > 0) result.Append(",\n");
 
-                // :root / html / body → replace with scope
+                // :root / html / body -> replace with scope
                 if (sel == ":root" || sel.Equals("html", StringComparison.OrdinalIgnoreCase) ||
                     sel.Equals("body", StringComparison.OrdinalIgnoreCase))
                 {

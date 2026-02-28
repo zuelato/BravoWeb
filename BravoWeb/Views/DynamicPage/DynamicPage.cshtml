@@ -27,7 +27,7 @@
                 ? fragment.Template!.JsContent
                 : fragment.JsContent;
 
-            // JS for template-based fragments is only emitted once per template
+            // deduplicate js per template
             var shouldEmitJs = true;
             if (isTemplateBased)
             {

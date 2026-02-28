@@ -30,7 +30,7 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(f => f.PageId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // delete template → set null on fragments (don't cascade delete)
+            // delete template -> set null on fragments (don't cascade delete)
             entity.HasOne(f => f.Template)
                 .WithMany(t => t.Fragments)
                 .HasForeignKey(f => f.TemplateId)

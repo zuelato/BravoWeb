@@ -29,7 +29,7 @@ public class DbSyncController : Controller
         return View();
     }
 
-    // pull: pg → sqlite
+    // pull: pg -> sqlite
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Pull()
@@ -47,7 +47,7 @@ public class DbSyncController : Controller
             sqliteDb.Database.EnsureDeleted();
             sqliteDb.Database.EnsureCreated();
 
-            // insert order: pages + templates first → then fragments (fk deps)
+            // insert order: pages + templates first -> then fragments (fk deps)
             sqliteDb.SitePages.AddRange(pages);
             sqliteDb.CustomTemplates.AddRange(templates);
             await sqliteDb.SaveChangesAsync();
@@ -58,7 +58,7 @@ public class DbSyncController : Controller
             sqliteDb.ContentFragments.AddRange(fragments);
             await sqliteDb.SaveChangesAsync();
 
-            TempData["SyncMessage"] = $"Pull complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from PostgreSQL → SQLite.";
+            TempData["SyncMessage"] = $"Pull complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from PostgreSQL -> SQLite.";
             TempData["SyncSuccess"] = true;
         }
         catch (Exception ex)
@@ -70,7 +70,7 @@ public class DbSyncController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // push: sqlite → pg
+    // push: sqlite -> pg
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Push()
@@ -85,14 +85,14 @@ public class DbSyncController : Controller
             var fragments = await sqliteDb.ContentFragments.AsNoTracking().ToListAsync();
             var templates = await sqliteDb.CustomTemplates.AsNoTracking().ToListAsync();
 
-            // delete order: fragments first → then templates + pages (fk deps)
+            // delete order: fragments first -> then templates + pages (fk deps)
             pgDb.ContentFragments.RemoveRange(pgDb.ContentFragments);
             await pgDb.SaveChangesAsync();
             pgDb.CustomTemplates.RemoveRange(pgDb.CustomTemplates);
             pgDb.SitePages.RemoveRange(pgDb.SitePages);
             await pgDb.SaveChangesAsync();
 
-            // insert order: pages + templates first → then fragments
+            // insert order: pages + templates first -> then fragments
             pgDb.SitePages.AddRange(pages);
             pgDb.CustomTemplates.AddRange(templates);
             await pgDb.SaveChangesAsync();
@@ -103,7 +103,7 @@ public class DbSyncController : Controller
             pgDb.ContentFragments.AddRange(fragments);
             await pgDb.SaveChangesAsync();
 
-            TempData["SyncMessage"] = $"Push complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from SQLite → PostgreSQL.";
+            TempData["SyncMessage"] = $"Push complete — {pages.Count} pages, {fragments.Count} fragments, {templates.Count} templates copied from SQLite -> PostgreSQL.";
             TempData["SyncSuccess"] = true;
         }
         catch (Exception ex)

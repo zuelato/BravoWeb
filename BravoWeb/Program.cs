@@ -7,7 +7,11 @@ using BravoWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// db provider → "PostgreSQL" or "SQLite" from appsettings
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+builder.Services.AddSingleton<TemplateRenderer>();
+
+// db provider -> "PostgreSQL" or "SQLite" from appsettings
 var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSQL";
 var useSqlite = dbProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase);
 
@@ -36,13 +40,13 @@ using (var scope = app.Services.CreateScope())
     {
         if (useSqlite)
         {
-            // sqlite → drop & recreate (local cache, data comes from pg via pull)
+            // sqlite -> drop & recreate (local cache, data comes from pg via pull)
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
         }
         else
         {
-            // pg → apply migrations
+            // pg -> apply migrations
             db.Database.Migrate();
         }
 
@@ -161,7 +165,6 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -171,13 +174,13 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorPages();
 
-// mvc routes → higher priority
+// mvc routes -> higher priority
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-// dynamic page catch-all → lower priority
+// dynamic page catch-all -> lower priority
 app.MapControllerRoute(
     name: "dynamic-page",
     pattern: "{slug}",

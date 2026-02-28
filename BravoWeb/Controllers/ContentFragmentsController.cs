@@ -18,7 +18,7 @@ namespace BravoWeb.Controllers
             _context = context;
         }
 
-        // normalize display order → 0, 1, 2, ... for a page scope
+        // normalize display order -> 0, 1, 2, ... for a page scope
         private async Task NormalizeOrderAsync(int? pageId)
         {
             var ordered = await _context.ContentFragments
@@ -100,7 +100,7 @@ namespace BravoWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                // push existing fragments down → new one goes to top
+                // push existing fragments down -> new one goes to top
                 var allFragments = await _context.ContentFragments
                     .Where(f => f.PageId == contentFragment.PageId)
                     .ToListAsync();

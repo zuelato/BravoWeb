@@ -19,13 +19,13 @@ public class ContentFragment
 
     public int DisplayOrder { get; set; } = 0;
 
-    // null → home page, otherwise → belongs to a SitePage
+    // null -> home page, otherwise -> belongs to a SitePage
     public int? PageId { get; set; }
 
     [ForeignKey("PageId")]
     public SitePage? Page { get; set; }
 
-    // null → legacy (raw html), otherwise → template-based
+    // null -> legacy (raw html), otherwise -> template-based
     public int? TemplateId { get; set; }
 
     [ForeignKey("TemplateId")]

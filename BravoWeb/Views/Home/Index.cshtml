@@ -13,9 +13,8 @@
             var scopeId = $"fragment-{fragment.Id}";
             var scopeSelector = $"#{scopeId}";
 
-            // Determine the effective HTML/CSS/JS:
-            // If the fragment references a template, use the template's structure + merge DataJson.
-            // Otherwise fall back to the fragment's own content (legacy behavior).
+            // template -> use template html/css/js merged with datajson
+            // otherwise -> fragment's own content (legacy)
             var isTemplateBased = fragment.TemplateId.HasValue && fragment.Template != null;
 
             var effectiveHtml = isTemplateBased
@@ -30,8 +29,7 @@
                 ? fragment.Template!.JsContent
                 : fragment.JsContent;
 
-            // JS for template-based fragments is only emitted once per template
-            // (avoids duplicate event listeners, etc.)
+            // deduplicate js per template (avoid duplicate event listeners)
             var shouldEmitJs = true;
             if (isTemplateBased)
             {
