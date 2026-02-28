@@ -25,7 +25,7 @@ namespace BravoWeb.Controllers
 
         public IActionResult Index()
         {
-            // Load only home page fragments (PageId is null), include Template for data-separated fragments
+            // home page fragments → pageId null, include template for rendering
             var fragments = _db.ContentFragments
                 .AsNoTracking()
                 .Include(f => f.Template)
@@ -34,7 +34,6 @@ namespace BravoWeb.Controllers
                 .ToList();
 
             ViewBag.Renderer = _renderer;
-
             return View(fragments);
         }
 
@@ -44,4 +43,4 @@ namespace BravoWeb.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
-}
+}}

@@ -7,22 +7,13 @@ namespace BravoWeb.Data;
 
 public partial class AppDbContext : DbContext
 {
-    public AppDbContext()
-    {
-    }
+    public AppDbContext() { }
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public virtual DbSet<Banner> Banners { get; set; }
-
-    // Added ContentFragments table
     public virtual DbSet<ContentFragment> ContentFragments { get; set; }
-
     public virtual DbSet<SitePage> SitePages { get; set; }
-
     public virtual DbSet<CustomTemplate> CustomTemplates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,10 +30,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(f => f.PageId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // delete template → set null on fragments (don't cascade delete)
             entity.HasOne(f => f.Template)
                 .WithMany(t => t.Fragments)
                 .HasForeignKey(f => f.TemplateId)
-                .OnDelete(DeleteBehavior.SetNull); // deleting a template doesn't delete fragments
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         OnModelCreatingPartial(modelBuilder);

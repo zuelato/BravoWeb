@@ -7,15 +7,7 @@ using BravoWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
-builder.Services.AddSingleton<TemplateRenderer>();
-
-// ── Database provider selection ──
-// Reads "DatabaseProvider" from appsettings (overridden per environment).
-// "PostgreSQL" → uses DefaultConnection with Npgsql
-// "SQLite"     → uses SqliteConnection with local file DB
+// db provider → "PostgreSQL" or "SQLite" from appsettings
 var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "PostgreSQL";
 var useSqlite = dbProvider.Equals("SQLite", StringComparison.OrdinalIgnoreCase);
 
@@ -36,7 +28,7 @@ else
 
 var app = builder.Build();
 
-// ── Database initialisation ──
+// db init
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -44,18 +36,17 @@ using (var scope = app.Services.CreateScope())
     {
         if (useSqlite)
         {
-            // SQLite: drop and recreate so schema always matches the current model.
-            // SQLite is a local cache — data comes from PostgreSQL via Pull.
+            // sqlite → drop & recreate (local cache, data comes from pg via pull)
             db.Database.EnsureDeleted();
             db.Database.EnsureCreated();
         }
         else
         {
-            // PostgreSQL: apply pending migrations
+            // pg → apply migrations
             db.Database.Migrate();
         }
 
-        // ── Helper: seed or update a template from files ──
+        // upsert template from wwwroot/templates/ files
         CustomTemplate SeedOrUpdateTemplate(
             string name, string icon, string description,
             string htmlFile, string? cssFile, string? jsFile)
@@ -90,7 +81,7 @@ using (var scope = app.Services.CreateScope())
             return template;
         }
 
-        // ── Seed templates ──
+        // seed templates
         var bannerTemplate = SeedOrUpdateTemplate(
             "Banner", "🖼️", "Banner toàn chiều rộng với tiêu đề, mô tả và nút CTA.",
             "banner.html", "banner.css", null);
@@ -107,7 +98,7 @@ using (var scope = app.Services.CreateScope())
             "Đối tác", "🤝", "Lưới logo đối tác 6x2 với inner borders.",
             "partners.html", "partners.css", null);
 
-        // ── Seed fragments ──
+        // seed fragments
         if (!db.ContentFragments.Any(f => f.Name == "banner"))
         {
             db.ContentFragments.Add(new ContentFragment
@@ -165,6 +156,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -175,21 +167,17 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapStaticAssets();
-
-// Map Razor Pages so admin pages are reachable
 app.MapRazorPages();
 
-// Default MVC routes (higher priority — matched first)
+// mvc routes → higher priority
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-// Dynamic page catch-all (lower priority — only matched if no MVC controller handled it)
+// dynamic page catch-all → lower priority
 app.MapControllerRoute(
     name: "dynamic-page",
     pattern: "{slug}",

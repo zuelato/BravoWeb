@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,22 +16,14 @@ namespace BravoWeb.Controllers
             _context = context;
         }
 
-        // GET: SitePages
         public async Task<IActionResult> Index()
         {
-            var pages = await _context.SitePages
-                .OrderBy(p => p.Title)
-                .ToListAsync();
+            var pages = await _context.SitePages.OrderBy(p => p.Title).ToListAsync();
             return View(pages);
         }
 
-        // GET: SitePages/Create
-        public IActionResult Create()
-        {
-            return View(new SitePage());
-        }
+        public IActionResult Create() => View(new SitePage());
 
-        // POST: SitePages/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Title,Slug,IsPublished")] SitePage page)
@@ -57,7 +49,6 @@ namespace BravoWeb.Controllers
             return View(page);
         }
 
-        // GET: SitePages/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -66,7 +57,6 @@ namespace BravoWeb.Controllers
             return View(page);
         }
 
-        // POST: SitePages/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Slug,IsPublished")] SitePage page)
@@ -101,7 +91,6 @@ namespace BravoWeb.Controllers
             return View(page);
         }
 
-        // GET: SitePages/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -110,7 +99,6 @@ namespace BravoWeb.Controllers
             return View(page);
         }
 
-        // POST: SitePages/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

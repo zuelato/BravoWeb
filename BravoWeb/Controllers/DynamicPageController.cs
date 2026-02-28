@@ -18,16 +18,9 @@ namespace BravoWeb.Controllers
             _renderer = renderer;
         }
 
-        // Mapped via explicit route in Program.cs — not via attribute routing
+        // catch-all route → mapped in Program.cs
         public async Task<IActionResult> Show(string slug)
         {
-            var styles = new List<string>
-            {
-                Url.Content("~/css/banner.css"),
-                Url.Content("~/css/product_news.css"),
-                Url.Content("~/css/testimonials.css"),
-                Url.Content("~/css/partner.css")
-            };
             if (string.IsNullOrWhiteSpace(slug)) return NotFound();
 
             var page = await _context.SitePages
@@ -38,7 +31,6 @@ namespace BravoWeb.Controllers
             if (page == null) return NotFound();
 
             ViewBag.Renderer = _renderer;
-
             return View("DynamicPage", page);
         }
     }

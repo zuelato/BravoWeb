@@ -2,17 +2,10 @@
 
 namespace BravoWeb.Services;
 
-/// <summary>
-/// Merges a template's HTML with a fragment's DataJson by replacing
-/// {{KEY}} placeholders with their corresponding values.
-/// </summary>
+// merges template html with fragment datajson → replaces {{KEY}} placeholders
 public class TemplateRenderer
 {
-    /// <summary>
-    /// Replace all {{KEY}} placeholders in <paramref name="templateHtml"/>
-    /// with values from <paramref name="dataJson"/>.
-    /// If <paramref name="dataJson"/> is null or empty the template HTML is returned as-is.
-    /// </summary>
+    // templateHtml + dataJson → resolved html
     public string Render(string templateHtml, string? dataJson)
     {
         if (string.IsNullOrWhiteSpace(templateHtml))
@@ -28,7 +21,7 @@ public class TemplateRenderer
         }
         catch (JsonException)
         {
-            // Malformed JSON — return template unchanged
+            // bad json → return as-is
             return templateHtml;
         }
 

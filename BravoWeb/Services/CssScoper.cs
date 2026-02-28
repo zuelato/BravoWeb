@@ -2,16 +2,10 @@
 
 namespace BravoWeb.Services;
 
-/// <summary>
-/// Scopes CSS rules so they only apply within a specific container element.
-/// Prefixes every selector with the given scope selector (e.g. "#fragment-42").
-/// </summary>
-public static partial class CssScoper
+// scopes css rules to a container → prefixes selectors with e.g. "#fragment-42"
+public static partial class CssScopers
 {
-    /// <summary>
-    /// Prefix every CSS rule's selector(s) with <paramref name="scopeSelector"/>.
-    /// Handles nested selectors, media queries, and keyframes.
-    /// </summary>
+    // css + scope selector → scoped css
     public static string Scope(string css, string scopeSelector)
     {
         if (string.IsNullOrWhiteSpace(css) || string.IsNullOrWhiteSpace(scopeSelector))
@@ -27,10 +21,9 @@ public static partial class CssScoper
 
         while (i < css.Length)
         {
-            // Skip whitespace
             if (char.IsWhiteSpace(css[i])) { result.Append(css[i++]); continue; }
 
-            // Skip comments
+            // skip comments
             if (i + 1 < css.Length && css[i] == '/' && css[i + 1] == '*')
             {
                 int end = css.IndexOf("*/", i + 2, StringComparison.Ordinal);
@@ -40,7 +33,7 @@ public static partial class CssScoper
                 continue;
             }
 
-            // At-rules: @media, @supports → recurse into their block
+            // at-rules → recurse into block
             if (css[i] == '@')
             {
                 int braceStart = css.IndexOf('{', i);
@@ -48,7 +41,7 @@ public static partial class CssScoper
 
                 string atRule = css[i..braceStart].Trim();
 
-                // @keyframes / @font-face — pass through without scoping
+                // @keyframes / @font-face → pass through
                 if (atRule.StartsWith("@keyframes", StringComparison.OrdinalIgnoreCase) ||
                     atRule.StartsWith("@font-face", StringComparison.OrdinalIgnoreCase))
                 {
@@ -58,7 +51,7 @@ public static partial class CssScoper
                     continue;
                 }
 
-                // @media, @supports, @layer etc — recurse into the block content
+                // @media, @supports etc → recurse
                 int innerEnd = FindClosingBrace(css, braceStart);
                 string innerCss = css[(braceStart + 1)..innerEnd];
                 result.Append(atRule);
@@ -69,7 +62,7 @@ public static partial class CssScoper
                 continue;
             }
 
-            // Normal rule: selector { ... }
+            // normal rule → scope selectors
             int ruleBodyStart = css.IndexOf('{', i);
             if (ruleBodyStart == -1) { result.Append(css[i..]); break; }
 
@@ -77,7 +70,6 @@ public static partial class CssScoper
             int ruleBodyEnd = FindClosingBrace(css, ruleBodyStart);
             string body = css[(ruleBodyStart + 1)..ruleBodyEnd];
 
-            // Scope each comma-separated selector
             var selectors = selectorPart.Split(',');
             for (int s = 0; s < selectors.Length; s++)
             {
@@ -86,7 +78,7 @@ public static partial class CssScoper
 
                 if (s > 0) result.Append(",\n");
 
-                // Don't scope :root or html/body — replace them with the scope
+                // :root / html / body → replace with scope
                 if (sel == ":root" || sel.Equals("html", StringComparison.OrdinalIgnoreCase) ||
                     sel.Equals("body", StringComparison.OrdinalIgnoreCase))
                 {

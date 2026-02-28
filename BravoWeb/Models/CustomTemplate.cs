@@ -23,8 +23,6 @@ public class CustomTemplate
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    /// <summary>
-    /// Fragments that use this template as their structure.
-    /// </summary>
+    // fragments using this template
     public ICollection<ContentFragment> Fragments { get; set; } = new List<ContentFragment>();
 }

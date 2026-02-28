@@ -29,9 +29,7 @@ public class DbSyncController : Controller
         return View();
     }
 
-    /// <summary>
-    /// Pull: PostgreSQL → SQLite (copy remote data to local file DB)
-    /// </summary>
+    // pull: pg → sqlite
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Pull()
@@ -39,21 +37,17 @@ public class DbSyncController : Controller
         try
         {
             using var pgDb = BuildContext("PostgreSQL");
-
-            // Ensure PostgreSQL schema is up to date
             pgDb.Database.Migrate();
 
-            // Read everything from PostgreSQL
             var pages = await pgDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await pgDb.ContentFragments.AsNoTracking().ToListAsync();
             var templates = await pgDb.CustomTemplates.AsNoTracking().ToListAsync();
 
-            // Recreate SQLite from scratch so schema always matches the current model
             using var sqliteDb = BuildContext("SQLite");
             sqliteDb.Database.EnsureDeleted();
             sqliteDb.Database.EnsureCreated();
 
-            // Insert — respect FK order: pages + templates first, then fragments
+            // insert order: pages + templates first → then fragments (fk deps)
             sqliteDb.SitePages.AddRange(pages);
             sqliteDb.CustomTemplates.AddRange(templates);
             await sqliteDb.SaveChangesAsync();
@@ -76,9 +70,7 @@ public class DbSyncController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>
-    /// Push: SQLite → PostgreSQL (copy local changes to remote DB)
-    /// </summary>
+    // push: sqlite → pg
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Push()
@@ -87,23 +79,20 @@ public class DbSyncController : Controller
         {
             using var pgDb = BuildContext("PostgreSQL");
             using var sqliteDb = BuildContext("SQLite");
-
-            // Ensure PostgreSQL schema is up to date
             pgDb.Database.Migrate();
 
-            // Read everything from SQLite
             var pages = await sqliteDb.SitePages.AsNoTracking().ToListAsync();
             var fragments = await sqliteDb.ContentFragments.AsNoTracking().ToListAsync();
             var templates = await sqliteDb.CustomTemplates.AsNoTracking().ToListAsync();
 
-            // Wipe PostgreSQL — respect FK order: fragments first (they reference pages + templates)
+            // delete order: fragments first → then templates + pages (fk deps)
             pgDb.ContentFragments.RemoveRange(pgDb.ContentFragments);
             await pgDb.SaveChangesAsync();
             pgDb.CustomTemplates.RemoveRange(pgDb.CustomTemplates);
             pgDb.SitePages.RemoveRange(pgDb.SitePages);
             await pgDb.SaveChangesAsync();
 
-            // Insert — respect FK order: pages + templates first, then fragments
+            // insert order: pages + templates first → then fragments
             pgDb.SitePages.AddRange(pages);
             pgDb.CustomTemplates.AddRange(templates);
             await pgDb.SaveChangesAsync();
@@ -126,23 +115,16 @@ public class DbSyncController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>
-    /// Build a standalone AppDbContext for the given provider ("PostgreSQL" or "SQLite").
-    /// </summary>
+    // build a standalone dbcontext for the given provider
     private AppDbContext BuildContext(string provider)
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
         if (provider.Equals("SQLite", StringComparison.OrdinalIgnoreCase))
-        {
             optionsBuilder.UseSqlite(_config.GetConnectionString("SqliteConnection"));
-        }
         else
-        {
             optionsBuilder.UseNpgsql(_config.GetConnectionString("DefaultConnection"));
-        }
 
-        var ctx = new AppDbContext(optionsBuilder.Options);
-        return ctx;
+        return new AppDbContext(optionsBuilder.Options);
     }
 }

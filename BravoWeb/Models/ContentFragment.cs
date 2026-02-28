@@ -8,7 +8,7 @@ public class ContentFragment
     public int Id { get; set; }
 
     [Required, StringLength(100)]
-    public string Name { get; set; } = null!; // e.g. "banner", "product_news"
+    public string Name { get; set; } = null!;
 
     [Required]
     public string HtmlContent { get; set; } = null!;
@@ -19,26 +19,19 @@ public class ContentFragment
 
     public int DisplayOrder { get; set; } = 0;
 
-    // Nullable FK: null = home page, otherwise belongs to a SitePage
+    // null → home page, otherwise → belongs to a SitePage
     public int? PageId { get; set; }
 
     [ForeignKey("PageId")]
     public SitePage? Page { get; set; }
 
-    /// <summary>
-    /// FK to the template that provides the HTML/CSS/JS structure.
-    /// null = legacy fragment (uses its own HtmlContent directly).
-    /// </summary>
+    // null → legacy (raw html), otherwise → template-based
     public int? TemplateId { get; set; }
 
     [ForeignKey("TemplateId")]
     public CustomTemplate? Template { get; set; }
 
-    /// <summary>
-    /// JSON key-value pairs that get merged into the template's placeholders.
-    /// null = legacy fragment (raw HTML, no template).
-    /// Example: { "TITLE": "Home", "BG_IMAGE": "home.jpg" }
-    /// </summary>
+    // flat json merged into template placeholders, e.g. {"TITLE":"...","BG_IMAGE":"..."}
     public string? DataJson { get; set; }
 
     [NotMapped]
