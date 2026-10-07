@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BravoWeb.Models;
@@ -33,6 +34,26 @@ public class ContentFragment
 
     // flat json merged into template placeholders, e.g. {"TITLE":"...","BG_IMAGE":"..."}
     public string? DataJson { get; set; }
+
+    /// <summary>
+    /// Foreign key to User who created this fragment
+    /// </summary>
+    public int CreatedById { get; set; }
+
+    [ForeignKey("CreatedById")]
+    public User? CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Foreign key to User who last updated this fragment
+    /// </summary>
+    public int? UpdatedById { get; set; }
+
+    [ForeignKey("UpdatedById")]
+    public User? UpdatedBy { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
 
     [NotMapped]
     public string Content

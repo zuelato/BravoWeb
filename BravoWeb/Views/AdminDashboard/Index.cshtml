@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Admin Dashboard - BravoWeb";
+}
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <p>Welcome, <strong>@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value</strong></p>
+    </div>
+
+    <div class="admin-grid">
+        <div class="admin-card">
+            <div class="card-icon">📄</div>
+            <h3>Manage Pages</h3>
+            <p>Create, edit, and delete website pages</p>
+            <a href="/SitePages" class="card-button">Go to Pages</a>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-icon">🧩</div>
+            <h3>Manage Fragments</h3>
+            <p>Manage content blocks and sections</p>
+            <a href="/ContentFragments" class="card-button">Go to Fragments</a>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-icon">🎨</div>
+            <h3>Templates</h3>
+            <p>Manage page templates and layouts</p>
+            <a href="/Admin/Fragments" class="card-button">Go to Templates</a>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-icon">🔄</div>
+            <h3>Database Sync</h3>
+            <p>Synchronize data between databases</p>
+            <a href="/DbSync" class="card-button">Go to Sync</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-container {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .admin-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .admin-header h1 {
+        font-size: 32px;
+        color: #1e3a8a;
+        margin-bottom: 8px;
+    }
+
+    .admin-header p {
+        font-size: 16px;
+        color: #6b7280;
+    }
+
+    .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .admin-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .admin-card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+        border-color: #1e40af;
+    }
+
+    .card-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .admin-card h3 {
+        font-size: 18px;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .admin-card p {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 16px;
+    }
+
+    .card-button {
+        display: inline-block;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .card-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(30, 64, 175, 0.2);
+    }
+</style>
